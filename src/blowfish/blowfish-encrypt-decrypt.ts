@@ -3,11 +3,8 @@ import { Blowfish } from './blowfish';
 export class BlowfishEncryptDecrypt {
   private MAXPASSWLEN = Blowfish.MAXKEYLENGTH >> 1;
   private bfish: Blowfish | null = null;
-
-  // our hex
   private HEXTAB = '0123456789ABCDEF';
   // to determine whether or not to use the CRC value
-  // will possibly need later
   private _CRCDecryption: boolean = true;
   private _CRCEncryption: boolean = true;
 
@@ -27,7 +24,7 @@ export class BlowfishEncryptDecrypt {
   }
 
   private initalize(password: string) {
-    // allocate the key buffer
+    // Allocate the key buffer
     let nLength = password.length;
     if (nLength > this.MAXPASSWLEN) {
       nLength = this.MAXPASSWLEN;
@@ -82,6 +79,12 @@ export class BlowfishEncryptDecrypt {
 
   public decryptString(sCipherText: string): string {
     let nLength = sCipherText.length & ~15;
+
+    /**
+      Check to ensure method does not walk off into memory and get hung. 
+      Happens if stringbuffer is smaller than text because of tampering 
+      with encrypted text.
+     */
 
     if (this._CRCDecryption) {
       if (nLength !== sCipherText.length) {
