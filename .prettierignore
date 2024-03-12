@@ -1,0 +1,13 @@
+build/
+dist
+
+node_modules/
+
+temp/
+
+storybook-static/
+
+TravelSites/
+.generated/
+
+.mesh/
