@@ -5,19 +5,17 @@ export class BlowfishHandler {
   //encryption key
   private static ecnKey = process.env.BLOWFISH_ENCRYPTION || '';
 
-  public static initializeBlowfish() {
-    this.bfhandler = new BlowfishEncryptDecrypt(this.ecnKey);
+  public static initializeBlowfish(key: string) {
+
+    const cypherKey = key ? key : this.ecnKey
+    this.bfhandler = new BlowfishEncryptDecrypt(cypherKey);
 
     return this.bfhandler;
   }
-  public static decryptData(encryption: string) {
-    if (!this.bfhandler) {
-      this.bfhandler = new BlowfishEncryptDecrypt(this.ecnKey);
-    }
-
+  public static decryptData(encryption: string, bfHandler: BlowfishEncryptDecrypt) {
     try {
       const decryptedData =
-        encryption && this.bfhandler.decryptString(encryption);
+        encryption && bfHandler.decryptString(encryption);
       return decryptedData;
     } catch (error) {
       console.error('Error during decryption:', error);
@@ -25,12 +23,10 @@ export class BlowfishHandler {
     }
   }
 
-  public static encryptData(text: string) {
-    if (!this.bfhandler) {
-      this.bfhandler = new BlowfishEncryptDecrypt(this.ecnKey);
-    }
+  public static encryptData(text: string, bfHandler: BlowfishEncryptDecrypt) {
+
     try {
-      const encryptedData = text && this.bfhandler.encryptString(text);
+      const encryptedData = text && bfHandler.encryptString(text);
       return encryptedData;
     } catch (error) {
       console.error('Error during decryption:', error);

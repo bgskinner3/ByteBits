@@ -1,4 +1,4 @@
-node_modules
+/node_modules
 
 .DS_Store
 
@@ -10,5 +10,9 @@ node_modules
 
 package-lock.json
 
+# notes
 notes.md
 save.md
+
+# Build files
+/dist
