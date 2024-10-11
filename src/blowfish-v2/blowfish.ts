@@ -1,4 +1,4 @@
-import { BlowfishSharedVar } from './blowfish-shared';
+import { BlowfishSharedVar } from './blowfish-shared-values';
 
 export class Blowfish {
   // maximum possible key length
@@ -103,7 +103,6 @@ export class Blowfish {
   }
   // encrypt a 64bit block
   protected encryptBlock(lPlainblock: bigint) {
-
     // split the block in two 32 bit halves
     // lPlainblock is passed as a 64 bit-int
     let nLeft: bigint = lPlainblock >> BigInt(32);
@@ -121,7 +120,6 @@ export class Blowfish {
         nLeft = nLeft ^ BigInt(this.pboxes[num]);
         nRight ^= this.encryptionMath32BitInt(nLeft);
       }
-    
     }
 
     // swap, finalize and reassemble to return the block
@@ -208,16 +206,16 @@ export class Blowfish {
    * @param outbuffer int[] buffer to get the ciphertext data
    */
   public encrypt(buffer: Uint8Array): void {
-    const nLen = buffer.length;
-    let lTemp: bigint;
+    const length = buffer.length;
+    let temp: bigint;
 
-    for (let nI = 0; nI < nLen; nI += 8) {
+    for (let nI = 0; nI < length; nI += 8) {
       // decrypt a temporary 64bit block
-      lTemp = this.byteArrayToLong(buffer, nI);
+      temp = this.byteArrayToLong(buffer, nI);
 
-      lTemp = this.encryptBlock(lTemp);
+      temp = this.encryptBlock(temp);
 
-      this.longToByteArray(lTemp, buffer, nI);
+      this.longToByteArray(temp, buffer, nI);
     }
   }
 }

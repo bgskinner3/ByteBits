@@ -17,6 +17,7 @@ export class BlowfishHandler {
   ) {
     try {
       const decryptedData = encryption && bfHandler.decryptString(encryption);
+
       return decryptedData;
     } catch (error) {
       console.error('Error during decryption:', error);

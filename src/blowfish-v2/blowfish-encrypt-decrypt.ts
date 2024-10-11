@@ -3,8 +3,11 @@ import { Blowfish } from './blowfish';
 export class BlowfishEncryptDecrypt {
   private MAXPASSWLEN = Blowfish.MAXKEYLENGTH >> 1;
   private bfish: Blowfish | null = null;
+
+  // our hex
   private HEXTAB = '0123456789ABCDEF';
   // to determine whether or not to use the CRC value
+  // will possibly need later
   private _CRCDecryption: boolean = true;
   private _CRCEncryption: boolean = true;
 
@@ -24,7 +27,7 @@ export class BlowfishEncryptDecrypt {
   }
 
   private initalize(password: string) {
-    // Allocate the key buffer
+    // allocate the key buffer
     let nLength = password.length;
     if (nLength > this.MAXPASSWLEN) {
       nLength = this.MAXPASSWLEN;
@@ -77,15 +80,11 @@ export class BlowfishEncryptDecrypt {
     return result.join('');
   }
 
-  public decryptString(sCipherText: string): string {
+  public decryptString(sCipherText: string, _CRCDecryption?: boolean): string {
     let nLength = sCipherText.length & ~15;
-
-    /**
-      Check to ensure method does not walk off into memory and get hung. 
-      Happens if stringbuffer is smaller than text because of tampering 
-      with encrypted text.
-     */
-
+    if (_CRCDecryption === false) {
+      this._CRCDecryption = false;
+    }
     if (this._CRCDecryption) {
       if (nLength !== sCipherText.length) {
         return '';
@@ -157,7 +156,7 @@ export class BlowfishEncryptDecrypt {
     } else {
       result = sbuf.toString();
     }
-    console.log(result, "HERE BITCH")
+
     return result;
   }
   /**
@@ -172,45 +171,42 @@ export class BlowfishEncryptDecrypt {
     }
 
     // allocate the buffer (align to the next 8 byte border)
-    const nOrigLen: number = sPlainText.length;
-    let nLength: number = sPlainText.length;
-
+    const originLength: number = sPlainText.length;
+    let length: number = sPlainText.length;
+ 
     let buf: Uint8Array = new Uint8Array();
 
     // one character equals two bytes
-    if ((nLength & 3) !== 0) {
-      nLength = (nLength & ~3) + 4;
+    if ((length & 3) !== 0) {
+      length = (length & ~3) + 4;
     }
-    buf = new Uint8Array(nLength << 1);
+    buf = new Uint8Array(length << 1);
 
     // copy all bytes of the string into the buffer (use network byte order)
     let position = 0;
-    for (let index = 0; index < nLength; index++) {
-      let cActChar;
+    for (let index = 0; index < length; index++) {
+      let char;
       // pad with blanks if the index is less htan the original length
-      index < nOrigLen ? (cActChar = sPlainText[index]) : (cActChar = ' ');
-      if (index < nOrigLen) {
-        cActChar = sPlainText[index];
+      index < originLength ? (char = sPlainText[index]) : (char = ' ');
+      if (index < originLength) {
+        char = sPlainText[index];
       } else {
-        cActChar = ' ';
+        char = ' ';
       }
-
       // we have to convert the character to a 8-bit signed intger
-      const siginedInt8Bit = this.charToSigned8BitInt(cActChar);
-
+      const siginedInt8Bit = this.charToSigned8BitInt(char);
       buf[position++] = (siginedInt8Bit >> 8) & 0x0ff;
       buf[position++] = siginedInt8Bit & 0x0ff;
-
     }
 
     this.bfish?.encrypt(buf);
 
     // convert the buffer content back to a binhex string
-    nLength <<= 1;
+    length <<= 1;
 
-    let sbuf: string = ' '.repeat(nLength << 1);
+    let sbuf: string = ' '.repeat(length << 1);
     position = 0;
-    for (let index = 0; index < nLength; index++) {
+    for (let index = 0; index < length; index++) {
       sbuf = this.setCharAt(
         sbuf,
         position++,
