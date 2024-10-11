@@ -6,7 +6,6 @@ The Blowfish Algorithim is a two way encryption method that enables data to be p
 
 - [Usage](#usage)
   - [Example](#example)
- 
 
 ## Usage
 
