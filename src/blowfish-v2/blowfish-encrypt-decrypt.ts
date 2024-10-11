@@ -6,8 +6,6 @@ export class BlowfishEncryptDecrypt {
 
   // our hex
   private HEXTAB = '0123456789ABCDEF';
-  // to determine whether or not to use the CRC value
-  // will possibly need later
   private _CRCDecryption: boolean = true;
   private _CRCEncryption: boolean = true;
 
@@ -128,6 +126,7 @@ export class BlowfishEncryptDecrypt {
     }
 
     let result = '';
+   
     if (this._CRCDecryption) {
       const temp = sbuf.toString();
       const CRCIndex = temp.lastIndexOf('|');
@@ -173,7 +172,7 @@ export class BlowfishEncryptDecrypt {
     // allocate the buffer (align to the next 8 byte border)
     const originLength: number = sPlainText.length;
     let length: number = sPlainText.length;
- 
+
     let buf: Uint8Array = new Uint8Array();
 
     // one character equals two bytes

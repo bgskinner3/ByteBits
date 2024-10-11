@@ -11,9 +11,6 @@ Changed the pboxes and sboxes which produce the (Key Expansion) as an
 env variable for added layer of security.
  */
 export class BlowfishSharedVar {
-
-
-
   static pbox_init: Uint32Array = this.parseENVBoxes(process.env.PBOX_INIT);
   static sbox_init_1: Uint32Array = this.parseENVBoxes(process.env.SBOX_INIT_1);
   static sbox_init_2: Uint32Array = this.parseENVBoxes(process.env.SBOX_INIT_2);

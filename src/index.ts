@@ -1,4 +1,2 @@
-import { BlowfishHandler } from './blowfish/blowfish-handler';
-import { BlowfishEncryptDecrypt } from './blowfish/blowfish-encrypt-decrypt';
-
-export { BlowfishHandler, BlowfishEncryptDecrypt };
+import { BlowfishHandlerV2 } from './blowfish-v2/handler';
+export { BlowfishHandlerV2 };

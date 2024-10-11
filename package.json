@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Blowfish encyption method beta",
   "main": "src/index.ts",
+  "private": true,
   "scripts": {
     "build": "tsup",
     "test": "jest",
