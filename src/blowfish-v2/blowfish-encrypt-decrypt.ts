@@ -126,7 +126,7 @@ export class BlowfishEncryptDecrypt {
     }
 
     let result = '';
-   
+
     if (this._CRCDecryption) {
       const temp = sbuf.toString();
       const CRCIndex = temp.lastIndexOf('|');
