@@ -1,11 +1,11 @@
-import { BlowfishHandlerV2 } from '../src/index';
+import { BlowfishHandler } from '../src/index';
 
 describe('Blowfish Default initialization, encryption, decryption', () => {
-  let initialization: BlowfishHandlerV2;
+  let initialization: BlowfishHandler;
   test('Setting up the encryption', () => {
-    initialization = new BlowfishHandlerV2('a4MJr12|hTiDOad');
+    initialization = new BlowfishHandler('a4MJr12|hTiDOad');
 
-    expect(initialization).toBeInstanceOf(BlowfishHandlerV2);
+    expect(initialization).toBeInstanceOf(BlowfishHandler);
   });
 
   test('Testing encryption', () => {
@@ -19,8 +19,8 @@ describe('Blowfish Default initialization, encryption, decryption', () => {
     }
   });
   test('Testing encryption with different key sizes', () => {
-    const shortKeyHandler = new BlowfishHandlerV2('shortkey');
-    const longKeyHandler = new BlowfishHandlerV2('averylongencryptionkeyvalue');
+    const shortKeyHandler = new BlowfishHandler('shortkey');
+    const longKeyHandler = new BlowfishHandler('averylongencryptionkeyvalue');
 
     const wordToEncrypt = 'key size test';
 

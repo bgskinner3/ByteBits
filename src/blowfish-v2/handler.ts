@@ -1,6 +1,6 @@
 import { BlowfishEncryptDecrypt } from './blowfish-encrypt-decrypt';
 
-export class BlowfishHandlerV2 {
+export class BlowfishHandler {
   //encryption key from .env if none is passed
   private ecnKey: string;
   private bfhandler: BlowfishEncryptDecrypt;
