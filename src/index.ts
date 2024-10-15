@@ -1,2 +1,3 @@
 import { BlowfishHandler } from './blowfish/handler';
-export { BlowfishHandler };
+import { TwoFishHandler } from './two-fish/handler';
+export { BlowfishHandler, TwoFishHandler };

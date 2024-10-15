@@ -4,7 +4,6 @@
  This optimization minimizes the total number of characters needed, leading to a more compact and space-efficient representation of large numerical datasets, such as PI
  */
 
-
 const optimizedHex =
   '5b7c4d2f9e6b4a2215d3c8b57293b5d44f0c28a967a0d12b79cf5e29b3817a7d70f7e5b82ec14b1e3e91b1' +
   '9f5d7e1a3c8b6f2d8c1b5a27de6f4a5129d9b7e3c7581c49db7c2a0b7f3f7be4a9a3e5e6023891d6bc9b63' +
@@ -123,7 +122,6 @@ const optimizedHex =
   '85cbfe4e8ae88dd87aaaf9b04cf9aa7e1948c25c02fb8a8c01c36ae4d6ebe1f990d4f869' +
   'a65cdea03f09252dc208e69fb74e6132ce77e25b578fdfe33ac372e6';
 
-
 const BLOWFISH_CONSTANTS = {
   MAXKEYLENGTH: 56,
   PBOX_ENTRIES: 18,
@@ -131,7 +129,6 @@ const BLOWFISH_CONSTANTS = {
   OPTIMIZED_DEFAULT_HEX: optimizedHex,
   HEXTAB: '0123456789ABCDEF',
   _CRCDecryption: true,
-  _CRCEncryption: true
-
+  _CRCEncryption: true,
 } as const;
-export { optimizedHex,BLOWFISH_CONSTANTS  };
+export { BLOWFISH_CONSTANTS };

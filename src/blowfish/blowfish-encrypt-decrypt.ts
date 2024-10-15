@@ -5,9 +5,9 @@ export class BlowfishEncryptDecrypt {
   private bfish: Blowfish | null = null;
 
   // our hex
-  private HEXTAB = BLOWFISH_CONSTANTS.HEXTAB
-  private _CRCDecryption: boolean = BLOWFISH_CONSTANTS._CRCDecryption
-  private _CRCEncryption: boolean = BLOWFISH_CONSTANTS._CRCEncryption
+  private HEXTAB = BLOWFISH_CONSTANTS.HEXTAB;
+  private _CRCDecryption: boolean = BLOWFISH_CONSTANTS._CRCDecryption;
+  private _CRCEncryption: boolean = BLOWFISH_CONSTANTS._CRCEncryption;
 
   constructor(password: string) {
     this.initalize(password);
