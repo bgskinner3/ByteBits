@@ -89,6 +89,6 @@ const decoded = bf.decryptData(encoded);
 
 # II. TwoFish Data Encryption
 
-## Table of Contents
 
-### WIP
+
+## This section is currently in Beta 
