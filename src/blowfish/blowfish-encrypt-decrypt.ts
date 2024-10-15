@@ -1,13 +1,13 @@
 import { Blowfish } from './blowfish';
-
+import { BLOWFISH_CONSTANTS } from './constants';
 export class BlowfishEncryptDecrypt {
   private MAXPASSWLEN = Blowfish.MAXKEYLENGTH >> 1;
   private bfish: Blowfish | null = null;
 
   // our hex
-  private HEXTAB = '0123456789ABCDEF';
-  private _CRCDecryption: boolean = true;
-  private _CRCEncryption: boolean = true;
+  private HEXTAB = BLOWFISH_CONSTANTS.HEXTAB
+  private _CRCDecryption: boolean = BLOWFISH_CONSTANTS._CRCDecryption
+  private _CRCEncryption: boolean = BLOWFISH_CONSTANTS._CRCEncryption
 
   constructor(password: string) {
     this.initalize(password);

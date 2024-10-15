@@ -1,11 +1,11 @@
 import { BlowfishSharedVar } from './blowfish-shared-values';
-
+import { BLOWFISH_CONSTANTS } from './constants';
 export class Blowfish {
   // maximum possible key length
-  public static MAXKEYLENGTH = 56;
+  public static MAXKEYLENGTH = BLOWFISH_CONSTANTS.MAXKEYLENGTH
   // size of the single boxes
-  private PBOX_ENTRIES = 18;
-  private SBOX_ENTRIES = 256;
+  private PBOX_ENTRIES = BLOWFISH_CONSTANTS.PBOX_ENTRIES
+  private SBOX_ENTRIES = BLOWFISH_CONSTANTS.SBOX_ENTRIES
 
   // encryption boxes
   private pboxes: Uint32Array;

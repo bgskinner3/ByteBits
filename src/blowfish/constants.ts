@@ -123,4 +123,15 @@ const optimizedHex =
   '85cbfe4e8ae88dd87aaaf9b04cf9aa7e1948c25c02fb8a8c01c36ae4d6ebe1f990d4f869' +
   'a65cdea03f09252dc208e69fb74e6132ce77e25b578fdfe33ac372e6';
 
-export { optimizedHex };
+
+const BLOWFISH_CONSTANTS = {
+  MAXKEYLENGTH: 56,
+  PBOX_ENTRIES: 18,
+  SBOX_ENTRIES: 256,
+  OPTIMIZED_DEFAULT_HEX: optimizedHex,
+  HEXTAB: '0123456789ABCDEF',
+  _CRCDecryption: true,
+  _CRCEncryption: true
+
+} as const;
+export { optimizedHex,BLOWFISH_CONSTANTS  };
