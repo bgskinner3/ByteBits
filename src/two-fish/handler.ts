@@ -1,47 +1,39 @@
-import { TwoFishEncryptDecrypt } from "./two-fish-encrypt-decrypt";
-
-
-
+import { TwoFishEncryptDecrypt } from './two-fish-encrypt-decrypt';
 
 export class TwoFishHandler {
-    //encryption key from .env if none is passed
-    private ecnKey: string;
-    private twoFishHandler: TwoFishEncryptDecrypt;
-    private privateKey = process.env.BLOWFISH_ENCRYPTION || '';
-  
-    constructor(key?: string) {
-      // If a key is passed, use it; otherwise, use the key from the environment variable
-      this.ecnKey = key || this.privateKey;
-  
-      if (!this.ecnKey) {
-        throw new Error(
-          'Encryption key must be provided or set in the environment.',
-        );
-      }
-  
-      // Initialize the Blowfish handler with the determined key
-      this.twoFishHandler = new TwoFishEncryptDecrypt(this.ecnKey);
+  private ecnKey: string;
+  private twoFishHandler: TwoFishEncryptDecrypt;
+  private privateKey = process.env.BLOWFISH_ENCRYPTION || '';
+
+  constructor(key?: string) {
+    this.ecnKey = key || this.privateKey;
+
+    if (!this.ecnKey) {
+      throw new Error(
+        'Encryption key must be provided or set in the environment.',
+      );
     }
-  
-    // public decryptData(encryption: string) {
-    //   try {
-    //     const decryptedData =
-    //       encryption && this.bfhandler.decryptString(encryption);
-  
-    //     return decryptedData;
-    //   } catch (error) {
-    //     console.error('Error during decryption:', error);
-    //     return null;
-    //   }
-    // }
-  
-    // public encryptData(text?: string) {
-    //   try {
-    //     const encryptedData = text && this.bfhandler.encryptString(text);
-    //     return encryptedData;
-    //   } catch (error) {
-    //     console.error('Error during encryption:', error);
-    //     return null;
-    //   }
-    // }
+
+    this.twoFishHandler = new TwoFishEncryptDecrypt(this.ecnKey);
   }
+  public encryptData(text?: string) {
+    try {
+      const encryptedData = text && this.twoFishHandler.encryptString(text);
+      return encryptedData;
+    } catch (error) {
+      console.error('Error during encryption:', error);
+      return null;
+    }
+  }
+
+  public decryptData(encryption: string) {
+    try {
+      const encryptedData =
+        encryption && this.twoFishHandler.decryptString(encryption);
+      return encryptedData;
+    } catch (error) {
+      console.error('Error during decryption:', error);
+      return null;
+    }
+  }
+}

@@ -1,14 +1,6 @@
-
-
-
 type TwoFishSession = {
-    sBox: Uint32Array
-    sKeys: Uint32Array
-}
+  sBox: Uint32Array;
+  sKeys: Uint32Array;
+};
 
-
-
-
-export {
-    type TwoFishSession
-}
+export { type TwoFishSession };
