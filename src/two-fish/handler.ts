@@ -18,7 +18,7 @@ export class TwoFishHandler {
   }
   public encryptData(text?: string) {
     try {
-      const encryptedData = text && this.twoFishHandler.encryptString(text);
+      const encryptedData = text && this.twoFishHandler.encryptTwoFishString(text);
       return encryptedData;
     } catch (error) {
       console.error('Error during encryption:', error);
@@ -29,7 +29,7 @@ export class TwoFishHandler {
   public decryptData(encryption: string) {
     try {
       const encryptedData =
-        encryption && this.twoFishHandler.decryptString(encryption);
+        encryption && this.twoFishHandler.decryptTwoFishString(encryption);
       return encryptedData;
     } catch (error) {
       console.error('Error during decryption:', error);
