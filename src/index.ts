@@ -1,2 +1,2 @@
-import { BlowfishHandler } from './blowfish-v2/handler';
+import { BlowfishHandler } from './blowfish/handler';
 export { BlowfishHandler };
