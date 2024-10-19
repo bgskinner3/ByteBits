@@ -228,8 +228,22 @@ const MDS3 = new Uint32Array([
 export class TwoFishSharedValues {
   static P0: Uint8Array = P0;
   static P1: Uint8Array = P1;
-  static MDS0: Uint32Array = MDS0;
-  static MDS1: Uint32Array = MDS1;
-  static MDS2: Uint32Array = MDS2;
-  static MDS3: Uint32Array = MDS3;
+  static MDS0: Uint32Array = this.parseUnit32Boxes(process.env.MDS0 ?? '')
+  static MDS1: Uint32Array = this.parseUnit32Boxes(process.env.MDS1 ?? '')
+  static MDS2: Uint32Array = this.parseUnit32Boxes(process.env.MDS2 ?? '')
+  static MDS3: Uint32Array = this.parseUnit32Boxes(process.env.MDS3 ?? '')
+
+
+
+
+  private static parseUnit32Boxes(envVariable: string) {
+    let ENVHexdigits = envVariable ? envVariable : new Uint32Array();
+
+    if (typeof ENVHexdigits === 'string') {
+      ENVHexdigits = new Uint32Array(ENVHexdigits.split(',').map(Number));
+    }
+
+    return ENVHexdigits;
+
+  }
 }

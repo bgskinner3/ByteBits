@@ -664,6 +664,7 @@ export class TwoFish {
     B2: number,
     B3: number,
   ) {
+    // TODO: refactor switch statement
     switch (k64Cnt & 3) {
       case 0: // 256 bit key
         B0 = P1[B0] ^ this.substitutionMixer(k3, 'b0');
