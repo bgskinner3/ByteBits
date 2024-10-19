@@ -18,7 +18,8 @@ export class TwoFishHandler {
   }
   public encryptData(text?: string) {
     try {
-      const encryptedData = text && this.twoFishHandler.encryptTwoFishString(text);
+      const encryptedData =
+        text && this.twoFishHandler.encryptTwoFishString(text);
       return encryptedData;
     } catch (error) {
       console.error('Error during encryption:', error);
