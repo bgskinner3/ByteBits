@@ -5,8 +5,9 @@ describe('TwoFish Default initialization, encryption, decryption', () => {
   test('Setting up the encryption', () => {
     initialization = new TwoFishHandler('a4MJTiDOad');
 
-    const result = initialization.encryptData('sadf helllo my name is brenng ');
+    const result = initialization.encryptData('Hello my name is Brennan');
 
     result && initialization.decryptData(result);
   });
+
 });
