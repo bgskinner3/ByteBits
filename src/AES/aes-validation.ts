@@ -1,5 +1,5 @@
 import { TAESBuffer } from './types';
-import { AESError } from './aes-error';
+import { AESError } from './aes-shared-resources';
 
 export class AESValidation {
   static checkInt = (value: unknown): boolean => {
@@ -23,12 +23,6 @@ export class AESValidation {
     return Array.isArray(arg) && this.checkByteArray(arg);
   }
 
-  // static createFixedLengthArray<T>(items: T[], length: number): T[] {
-  //     if (items.length !== length) {
-  //         throw new Error(`Array must have exactly ${length} elements`);
-  //     }
-  //     return items;
-  // }
   static checkInts<T extends number[]>(arrayIsh: unknown): arrayIsh is T {
     if (!Array.isArray(arrayIsh)) return false;
     return this.checkByteArray(arrayIsh);
@@ -45,5 +39,14 @@ export class AESValidation {
     }
 
     return length;
+  }
+  static isValidTextLength(text: Uint8Array) {
+    if (text.length !== 16) {
+      throw new AESError({
+        message: 'Invalid text size (must be 16 bytes',
+        customErrorCode: 'AES_TEXT_INVALID',
+        statusCode: 400,
+      });
+    }
   }
 }
