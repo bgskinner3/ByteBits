@@ -1,7 +1,7 @@
-import { AESSharedResources, AESError } from './aes-shared-resources';
-import { AESValidation } from './aes-validation';
 import type { AESCounterCTR } from './aes-counter';
 import { TAESBuffer } from './types';
+import { AESSharedValues } from './aes-shared-values';
+import { AESUtils } from './aes-utils';
 
 type TAESEncryptCTR = {
   plaintext: TAESBuffer;
@@ -14,32 +14,30 @@ type TAESEncryptCTR = {
 
 export class AESEncryptDecrypt {
   private roundState: number[] = new Array(4).fill(0);
-  private encryptionTransformationBoxes = [
-    AESSharedResources.aesEncryptTransformation1,
-    AESSharedResources.aesEncryptTransformation2,
-    AESSharedResources.aesEncryptTransformation3,
-    AESSharedResources.aesEncryptTransformation4,
-  ];
-  private decryptionTransformationBoxes = [
-    AESSharedResources.aesEncryptTransformation1,
-    AESSharedResources.aesEncryptTransformation2,
-    AESSharedResources.aesEncryptTransformation3,
-    AESSharedResources.aesEncryptTransformation4,
-  ];
+  private encryptionTransformationBoxes =
+    AESSharedValues.encryptionTransformationBoxes;
+  private decryptionTransformationBoxes =
+    AESSharedValues.decryptionTransformationBoxes;
 
+  /**
+   * Since CTR is symmetrical
+   *   ***that is The same operation is used for both encryption and decryption.***
+   * We consolidate the block process into one method, with the only difference being the
+   * 1. transformation Boxes
+   * 2. sBox
+   */
   private processBlockAES(
     input: Uint8Array,
     roundKeys: number[][] = [],
-
-    sBox: number[], // S-Box or Inverse S-Box
-    isEncryption: boolean, // Flag to decide if encrypting or decrypting
+    sBox: number[],
+    isEncryption: boolean,
   ): Uint8Array {
-    AESValidation.validateInputLength(input);
+    AESUtils.validateInputLength(input);
     const transformations = isEncryption
       ? this.encryptionTransformationBoxes
       : this.decryptionTransformationBoxes;
     const rounds = roundKeys.length - 1;
-    let tempKey = AESSharedResources.convertToInt32(input);
+    let tempKey = AESUtils.convertToInt32(input);
 
     // Initial round key XOR
     for (let i = 0; i < 4; i++) {
@@ -77,11 +75,10 @@ export class AESEncryptDecrypt {
     plaintext: Uint8Array,
     roundKeys: number[][] = [],
   ): Uint8Array {
-    // For encryption, use the appropriate transformations and S-box
     return this.processBlockAES(
       plaintext,
       roundKeys,
-      AESSharedResources.aesSBox,
+      AESSharedValues.aesSBox,
       true, // Encrypting
     );
   }
@@ -89,19 +86,15 @@ export class AESEncryptDecrypt {
     cipherText: Uint8Array,
     roundKeys: number[][] = [],
   ): Uint8Array {
-    // For decryption, use the inverse transformations and inverse S-box
     return this.processBlockAES(
       cipherText,
       roundKeys,
-      AESSharedResources.aesInverseSBox,
+      AESSharedValues.aesInverseSBox,
       false, // Decrypting
     );
   }
   public AESEncryptCTR({ plaintext, state }: TAESEncryptCTR) {
-    const encrypted = AESSharedResources.validateAndWrapUnit8Array(
-      plaintext,
-      true,
-    );
+    const encrypted = AESUtils.validateAndWrapUnit8Array(plaintext, true);
     for (let i = 0; i < encrypted.length; i++) {
       if (state._remainingCounterIndex === 16) {
         state._remainingCounter = this.encryptBlockAES(state._counter._counter);

@@ -1,7 +1,6 @@
 import { AESCounterCTR } from './aes-counter';
 import { AESEncryptDecrypt } from './aes-encrypt-decrypt';
 import { TAESBuffer } from './types';
-import { AESSharedResources } from './aes-shared-resources';
 import { AESCore } from './aes-core';
 
 export class AESHandler {
@@ -9,26 +8,44 @@ export class AESHandler {
   private _remainingCounter: null | Uint8Array;
   private _remainingCounterIndex: number;
   private _aes: AESCore;
+  private _encryptDecrypt: AESEncryptDecrypt;
 
-  constructor(aes: AESCore, counter: AESCounterCTR) {
+  constructor(aes: AESCore, counter: AESCounterCTR | number) {
     // Initialize AES instance and counter
     this._aes = aes;
     this._counter =
       counter instanceof AESCounterCTR ? counter : new AESCounterCTR(counter);
     this._remainingCounter = null;
     this._remainingCounterIndex = 16;
+    this._encryptDecrypt = new AESEncryptDecrypt();
   }
 
-  // private process(data: TAESBuffer) {
-  //     // Logic for processing the data (encryption or decryption)
-  //     // Assuming AESEncryptDecrypt handles both encrypt and decrypt
-  //     return  AESEncryptDecrypt(this._aes, data, this)
-  //   }
-  //   encrypt(plaintext: TAESBuffer) {
-  //     return this.process(plaintext)
-  //   }
+  /**
+   * Encrypts the given plaintext using AES CTR mode.
+   * @param {TAESBuffer} plaintext - The data to encrypt.
+   * @returns {Uint8Array} - The encrypted ciphertext.
+   */
+  public encrypt(plaintext: TAESBuffer): Uint8Array {
+    return this._encryptDecrypt.AESEncryptCTR({
+      plaintext,
+      state: {
+        _counter: this._counter,
+        _remainingCounter: this._remainingCounter,
+        _remainingCounterIndex: this._remainingCounterIndex,
+      },
+    });
+  }
 
-  //   decrypt(ciphertext: TAESBuffer) {
-  //     return this.process(ciphertext)
-  //   }
+  /**
+   * Decrypts the given cipherText using AES.
+   * @param {TAESBuffer} cipherText - The data to decrypt.
+   * @param {number[][]} roundKeys - The round keys for AES decryption.
+   * @returns {Uint8Array} - The decrypted plaintext.
+   */
+  public decrypt(
+    cipherText: Uint8Array,
+    roundKeys: number[][] = [],
+  ): Uint8Array {
+    return this._encryptDecrypt.decryptBlockAES(cipherText, roundKeys);
+  }
 }

@@ -1,6 +1,6 @@
 import { TAESBuffer, TRoundKey } from './types';
-import { AESError, AESSharedResources } from './aes-shared-resources';
-import { AESValidation } from './aes-validation';
+import { AESSharedValues } from './aes-shared-values';
+import { AESUtils, AESError } from './aes-utils';
 
 /**
  * AESEncryption class
@@ -16,6 +16,16 @@ import { AESValidation } from './aes-validation';
  *
  * Key expansion reference: FIPS-197 Section 5.2 — "Key Expansion"
  * https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf
+ */
+//
+/**
+ * @constructor key {TAESBuffer}
+ *  - Must be a 128-bit (16-byte), 192-bit (24-byte), or 256-bit (32-byte) AES key.
+ *  - Accepts `Uint8Array`, `number[]`, or `ArrayBuffer` formats.
+ *  - Automatically validated and normalized to a `Uint8Array`.
+ * @throws
+ * - `AES_KEY_MISSING` if no key is provided.
+ * - `AES_INVALID_KEY_LENGTH` if the key length is invalid.
  */
 export class AESCore {
   private KEY: Uint8Array;
@@ -33,11 +43,11 @@ export class AESCore {
         name: 'AES Encryption Error',
       });
     }
-    this.KEY = AESSharedResources.validateAndWrapUnit8Array(key, true);
-    const keySize = AESValidation.inferKeySize(this.KEY);
-    this.rounds = AESSharedResources.getNumberOfRounds(keySize); // Nr = Nk + 6
+    this.KEY = AESUtils.validateAndWrapUnit8Array(key, true);
+    const keySize = AESUtils.inferKeySize(this.KEY);
+    this.rounds = AESUtils.getNumberOfRounds(keySize); // Nr = Nk + 6
 
-    AESSharedResources.initializeEncryptionBoxes({
+    AESUtils.initializeEncryptionBoxes({
       rounds: this.rounds,
       encryptionRoundKeys: this._encryptionRoundKeys,
       decryptionRoundKeys: this._decryptionRoundKeys,
@@ -48,10 +58,9 @@ export class AESCore {
 
   private expandKey(): void {
     const keyLength = this.KEY.length;
-    const roundKeyCount =
-      AESSharedResources.numberOfColumns * (this.rounds + 1); // 🔒(FIPS-197) w[] length
+    const roundKeyCount = AESSharedValues.numberOfColumns * (this.rounds + 1); // 🔒(FIPS-197) w[] length
     const numWordsKey = keyLength >>> 2; // 📐 (FIPS-197) Nk — number
-    const tempKey = AESSharedResources.convertToInt32(this.KEY); // 📐 Input key interpreted as array of Nk 32-bit words
+    const tempKey = AESUtils.convertToInt32(this.KEY); // 📐 Input key interpreted as array of Nk 32-bit words
 
     for (let i = 0, idx = 0; i < numWordsKey; i++) {
       idx = i >> 2;
@@ -68,7 +77,7 @@ export class AESCore {
       if (t % numWordsKey === 0) {
         this.rotateWord(tmp);
         this.substituteWord(tmp);
-        this.coefficientAddition(tmp, AESSharedResources.roundConstant(rc++));
+        this.coefficientAddition(tmp, AESUtils.roundConstant(rc++));
       } else if (numWordsKey > 6 && t % numWordsKey === 4) {
         this.substituteWord(tmp); // For AES-256 only: If Nk > 6 and t mod Nk === 4, temp ← SubWord(temp)
       }
@@ -96,10 +105,10 @@ export class AESCore {
       for (let c = 0; c < 4; c++) {
         const tt = this._decryptionRoundKeys[r][c];
         this._decryptionRoundKeys[r][c] =
-          AESSharedResources.decryptionKeyExpansionTable1[(tt >> 24) & 0xff] ^
-          AESSharedResources.decryptionKeyExpansionTable2[(tt >> 16) & 0xff] ^
-          AESSharedResources.decryptionKeyExpansionTable3[(tt >> 8) & 0xff] ^
-          AESSharedResources.decryptionKeyExpansionTable4[tt & 0xff];
+          AESSharedValues.decryptionKeyExpansionTable1[(tt >> 24) & 0xff] ^
+          AESSharedValues.decryptionKeyExpansionTable2[(tt >> 16) & 0xff] ^
+          AESSharedValues.decryptionKeyExpansionTable3[(tt >> 8) & 0xff] ^
+          AESSharedValues.decryptionKeyExpansionTable4[tt & 0xff];
       }
     }
   }
@@ -120,8 +129,7 @@ export class AESCore {
    */
   private substituteWord(w: number[]): void {
     for (let i = 0; i < 4; i++) {
-      w[i] =
-        AESSharedResources.aesSBox[16 * ((w[i] & 0xf0) >> 4) + (w[i] & 0x0f)];
+      w[i] = AESSharedValues.aesSBox[16 * ((w[i] & 0xf0) >> 4) + (w[i] & 0x0f)];
     }
   }
 
