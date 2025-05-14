@@ -16,3 +16,7 @@ save.md
 
 # Build files
 /dist
+
+/notes.md
+
+/src/AES/checklist.md

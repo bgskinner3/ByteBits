@@ -9,5 +9,4 @@ describe('TwoFish Default initialization, encryption, decryption', () => {
 
     result && initialization.decryptData(result);
   });
-
 });

@@ -11,3 +11,5 @@ TravelSites/
 .generated/
 
 .mesh/
+
+src/AES/constants.ts
