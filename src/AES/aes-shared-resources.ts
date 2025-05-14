@@ -150,6 +150,9 @@ export class AESSharedResources {
 
     targetArray.set(slice, targetStart);
   };
+  public static toSingedInteger = (value: number): number => {
+    return parseInt(value.toString(), 10);
+  };
 }
 export class AESError extends Error {
   statusCode: number;

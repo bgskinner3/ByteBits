@@ -1,6 +1,14 @@
-import { TAESBuffer } from './types';
+import { TAESBuffer, TByte } from './types';
 import { AESError } from './aes-shared-resources';
 
+/**
+ * class should be responsible for validating inputs, ensuring the correct sizes, for the key, nonce etc.
+ * Vlaididng the integrity of teh process as well as validating types
+ *
+ * for Example:
+ * Given COUNTER (CTR), here we check and validate if necessary the nonce has been provided and validate that the nonce
+ * is strcitly unique
+ */
 export class AESValidation {
   static checkInt = (value: unknown): boolean => {
     return typeof value === 'number' && value === value;
@@ -40,11 +48,36 @@ export class AESValidation {
 
     return length;
   }
-  static isValidTextLength(text: Uint8Array) {
-    if (text.length !== 16) {
+  static validateInputLength(input: Uint8Array | TByte[]) {
+    if (input.length !== 16) {
       throw new AESError({
         message: 'Invalid text size (must be 16 bytes',
         customErrorCode: 'AES_TEXT_INVALID',
+        statusCode: 400,
+      });
+    }
+  }
+  static isNumber(value: unknown): value is number {
+    return typeof value === 'number';
+  }
+  static isInteger(value: unknown): value is number {
+    return Number.isInteger(value);
+  }
+
+  static validateCounterValue(value: number | string): asserts value is number {
+    if (!AESValidation.isNumber(value) || !AESValidation.isInteger(value)) {
+      throw new AESError({
+        message: 'Counter value must be an integer.',
+        customErrorCode: 'AES_INVALID_COUNTER_VALUE',
+        statusCode: 400,
+      });
+    }
+
+    if (value > Number.MAX_SAFE_INTEGER) {
+      throw new AESError({
+        message:
+          'The provided number exceeds the safe integer range. Please provide a value less than or equal to Number.MAX_SAFE_INTEGER.',
+        customErrorCode: 'AES_INVALID_COUNTER_VALUE',
         statusCode: 400,
       });
     }

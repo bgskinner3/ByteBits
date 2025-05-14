@@ -4,7 +4,9 @@ import { AESValidation } from './aes-validation';
 
 /**
  * AESEncryption class
- *
+ * This class encapsulates the core AES encryption and decryption logic, including key expansion,
+ * block transformations, and encryption/decryption operations.
+ * ----
  * AES-specific notation (based on FIPS-197):
  *
  * - 📐 Nk: Number of 32-bit words in the key (4/6/8 for AES-128/192/256)
@@ -15,11 +17,13 @@ import { AESValidation } from './aes-validation';
  * Key expansion reference: FIPS-197 Section 5.2 — "Key Expansion"
  * https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf
  */
-export class AESEncryption {
-  private readonly KEY: Uint8Array;
-  private readonly rounds: number; // 📊  Nr in FIPS-197
-  private _Ke: TRoundKey[] = []; //  🔒 w[] — Key schedule (expanded key words)
-  private _Kd: TRoundKey[] = []; //  🔒 w[] — Key schedule (expanded key words)
+export class AESCore {
+  private KEY: Uint8Array;
+  private rounds: number; // 📊  Nr in FIPS-197
+  // ***** KNOWN AS    _Ke
+  private _encryptionRoundKeys: TRoundKey[] = []; //  🔒 w[] — Key schedule (expanded key words)
+  // ***** KNOWN AS  _decryptionRoundKeys
+  private _decryptionRoundKeys: TRoundKey[] = []; //  🔒 w[] — Key schedule (expanded key words)
 
   constructor(key: TAESBuffer) {
     if (!key) {
@@ -35,8 +39,8 @@ export class AESEncryption {
 
     AESSharedResources.initializeEncryptionBoxes({
       rounds: this.rounds,
-      encryptionRoundKeys: this._Ke,
-      decryptionRoundKeys: this._Kd,
+      encryptionRoundKeys: this._encryptionRoundKeys,
+      decryptionRoundKeys: this._decryptionRoundKeys,
     });
 
     this.expandKey();
@@ -51,8 +55,8 @@ export class AESEncryption {
 
     for (let i = 0, idx = 0; i < numWordsKey; i++) {
       idx = i >> 2;
-      this._Ke[idx][i % 4] = tempKey[i];
-      this._Kd[this.rounds - idx][i % 4] = tempKey[i];
+      this._encryptionRoundKeys[idx][i % 4] = tempKey[i];
+      this._decryptionRoundKeys[this.rounds - idx][i % 4] = tempKey[i];
     }
 
     // Key expansion (fips-197 section 5.2)
@@ -82,16 +86,16 @@ export class AESEncryption {
       const col = t % 4;
 
       // Populate encryption round keys
-      this._Ke[row][col] = tempKey[t];
+      this._encryptionRoundKeys[row][col] = tempKey[t];
 
       // Populate decryption round keys (in reverse order)
-      this._Kd[this.rounds - row][col] = tempKey[t];
+      this._decryptionRoundKeys[this.rounds - row][col] = tempKey[t];
     }
     // inverse-cipher-ify the decryption round key (fips-197 section 5.3)
     for (let r = 1; r < this.rounds; r++) {
       for (let c = 0; c < 4; c++) {
-        const tt = this._Kd[r][c];
-        this._Kd[r][c] =
+        const tt = this._decryptionRoundKeys[r][c];
+        this._decryptionRoundKeys[r][c] =
           AESSharedResources.decryptionKeyExpansionTable1[(tt >> 24) & 0xff] ^
           AESSharedResources.decryptionKeyExpansionTable2[(tt >> 16) & 0xff] ^
           AESSharedResources.decryptionKeyExpansionTable3[(tt >> 8) & 0xff] ^

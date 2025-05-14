@@ -45,7 +45,7 @@ export class BlowfishEncryptDecrypt {
       bkey[position++] = siginedInt8Bit & 0x0ff;
     }
 
-    // setup the encryptor
+    // setup the encryption
     this.bfish = new Blowfish(bkey);
 
     // clear the key buffer
