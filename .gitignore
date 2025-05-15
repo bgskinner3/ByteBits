@@ -26,3 +26,6 @@ save.md
 src/blowfish/blowfish-encrypted-decrypted.ts
 
 src/two-fish/two-fish-encrypted-decrypted.ts
+
+src/kalo-skribi
+src/kalo-skribi/*

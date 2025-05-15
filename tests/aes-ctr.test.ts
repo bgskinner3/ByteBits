@@ -35,6 +35,7 @@ describe('AESHandler', () => {
     // Encrypt returns { ciphertext, nonce }
     const { cipherText, nonce } = handler.encrypt(plaintext);
 
+    console.log(cipherText, nonce, '\n\n\n\n');
     // New handler for decryption with the same key
     const decryptHandler = new AESHandler(keyUint8Array);
 
