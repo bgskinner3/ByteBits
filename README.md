@@ -1,4 +1,4 @@
-# ByteBits — Multi-Language Encryption Library
+# ByteBits — Encryption Library
 
 ByteBits is a comprehensive repository housing a collection of robust, well-tested encryption algorithms implemented across different programming languages. This project includes both widely recognized cryptographic standards—such as Blowfish, Twofish, and AES—as well as custom-built encryption methods developed from the ground up.
 
