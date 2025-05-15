@@ -9,4 +9,4 @@
 // }
 export * from './blowfish/handler';
 export * from './two-fish/handler';
-export * from './AES';
+export * from './aes-ctr';

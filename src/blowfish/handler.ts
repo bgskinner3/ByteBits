@@ -1,4 +1,4 @@
-import { BlowfishEncryptDecrypt } from './blowfish-encrypt-decrypt';
+import { BlowfishEncryptDecrypt } from './blowfish-encrypted-decrypted';
 
 export class BlowfishHandler {
   //encryption key from .env if none is passed

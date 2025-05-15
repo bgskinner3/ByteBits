@@ -1,4 +1,4 @@
-import { TwoFishEncryptDecrypt } from './two-fish-encrypt-decrypt';
+import { TwoFishEncryptDecrypt } from './two-fish-encrypted-decrypted';
 
 export class TwoFishHandler {
   private ecnKey: string;

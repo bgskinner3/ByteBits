@@ -22,4 +22,7 @@ save.md
 /src/AES/checklist.md
 
 # sesitive files
-/src/blowfish/blowfish-encrypt-decrypt
+
+src/blowfish/blowfish-encrypted-decrypted.ts
+
+src/two-fish/two-fish-encrypted-decrypted.ts
