@@ -26,17 +26,18 @@ import { AESUtils, AESError } from './aes-utils';
  * @throws
  * - `AES_KEY_MISSING` if no key is provided.
  * - `AES_INVALID_KEY_LENGTH` if the key length is invalid.
+ * @internal
  */
 export class AESCore {
   private KEY: Uint8Array;
   private rounds: number; // 📊  Nr in FIPS-197
   // ***** KNOWN AS    _Ke
-  private  _encryptionRoundKeys: TRoundKey[]; //  🔒 w[] — Key schedule (expanded key words)
+  private _encryptionRoundKeys: TRoundKey[]; //  🔒 w[] — Key schedule (expanded key words)
   // ***** KNOWN AS  _decryptionRoundKeys
   private _decryptionRoundKeys: TRoundKey[]; //  🔒 w[] — Key schedule (expanded key words)
   private readonly roundKeyCount: number;
   private readonly numRows: number;
-  constructor(key: TAESBuffer) {
+  constructor(key: TAESBuffer | null) {
     if (!key) {
       throw new AESError({
         message: 'AES requires key!',
@@ -48,11 +49,14 @@ export class AESCore {
     const keySize = AESUtils.inferKeySize(this.KEY);
     this.rounds = AESUtils.getNumberOfRounds(keySize); // Nr = Nk + 6
 
-
     this.roundKeyCount = AESSharedValues.numberOfColumns * (this.rounds + 1); // 🔒(FIPS-197) w[] length
     this.numRows = this.KEY.length >>> 2; // 📐 (FIPS-197) Nk — number
-    this._encryptionRoundKeys = Array.from({ length: this.numRows }, () => [0, 0, 0, 0]);
-    this._decryptionRoundKeys = Array.from({ length: this.numRows }, () => [0, 0, 0, 0]);
+    this._encryptionRoundKeys = Array.from({ length: this.numRows }, () => [
+      0, 0, 0, 0,
+    ]);
+    this._decryptionRoundKeys = Array.from({ length: this.numRows }, () => [
+      0, 0, 0, 0,
+    ]);
     AESUtils.initializeEncryptionBoxes({
       rounds: this.rounds,
       encryptionRoundKeys: this._encryptionRoundKeys,
@@ -63,7 +67,6 @@ export class AESCore {
   }
 
   private expandKey(): void {
-
     const tempKey = AESUtils.convertToInt32(this.KEY); // 📐 Input key interpreted as array of Nk 32-bit words
 
     for (let i = 0, idx = 0; i < this.numRows; i++) {

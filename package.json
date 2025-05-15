@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsup",
     "test": "jest",
+    "cov:test": "jest --coverage",
     "lint": "eslint --ignore-path .eslintignore --ext .js,.ts && eslint \"**/*.ts*\" && tsc --noEmit",
     "lint:code": "eslint \"**/*.ts*\"",
     "lint:types": "tsc --noEmit",

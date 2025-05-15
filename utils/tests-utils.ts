@@ -23,15 +23,17 @@ export class TestsUtils {
     const key = TestsUtils.deriveKeyFromPassword(password, salt);
     return new Uint8Array(key);
   };
-  static stringToUint8Array = (str: string): Uint8Array => {
-    const arr = new Uint8Array(str.length);
-    for (let i = 0; i < str.length; i++) {
-      arr[i] = str.charCodeAt(i);
-    }
-    return arr;
-  };
 
-  static uint8ArrayToString = (arr: Uint8Array): string => {
-    return String.fromCharCode(...arr);
-  };
+  static stringToUint8Array(str: string): Uint8Array {
+    return new TextEncoder().encode(str);
+  }
+
+  static uint8ArrayToString(arr: Uint8Array): string {
+    return new TextDecoder().decode(arr);
+  }
+  static generateNonce(): Uint8Array {
+    const nonce = new Uint8Array(12);
+    crypto.getRandomValues(nonce); // secure random bytes
+    return nonce;
+  }
 }

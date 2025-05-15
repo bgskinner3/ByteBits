@@ -1,6 +1,5 @@
-export * from './aes-core';
 export * from './handler';
+
+// EXPORTING FOR TESTING REMOVE IN PROD
+export * from './aes-core';
 export * from './types';
-export * from './aes-encrypt-decrypt';
-export * from './aes-counter';
-export * from './aes-utils'

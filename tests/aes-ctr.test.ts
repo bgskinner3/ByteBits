@@ -1,5 +1,5 @@
-import { AESHandler } from '../src/index';
-import { TestsUtils } from '../utils';
+import { AESHandler, AESCore } from '../src/index';
+import { TestsUtils, AESTestUtils } from '../utils';
 
 const password = 'yourpassword123';
 const salt = TestsUtils.getConstantSaltBytes();
@@ -7,139 +7,135 @@ const key = TestsUtils.deriveKeyFromPassword(password, salt);
 const keyUint8Array = new Uint8Array(key);
 
 describe('AESHandler', () => {
-    let handler: AESHandler;
+  let handler: AESHandler;
 
-    beforeEach(() => {
-        handler = new AESHandler(keyUint8Array);
-    });
+  beforeEach(() => {
+    handler = new AESHandler(keyUint8Array);
+  });
 
-    it('should initialize AESHandler correctly', () => {
-        expect(handler).toBeDefined();
-        // Internals are private, but you can check the handler instance exists
-    });
+  it('should initialize AESHandler correctly', () => {
+    expect(handler).toBeDefined();
+    // Internals are private, but you can check the handler instance exists
+  });
 
-    it('should correctly encrypt and decrypt using AES CTR mode', () => {
-        const originalText = 'This is a secret test!';
-        const plaintext = TestsUtils.stringToUint8Array(originalText);
+  it('should correctly encrypt and decrypt using AES CTR mode', () => {
+    const originalText = 'This is a secret test!';
+    const plaintext = TestsUtils.stringToUint8Array(originalText);
 
-        // Encrypt returns { ciphertext, nonce }
-        const { cipherText, nonce } = handler.encrypt(plaintext);
+    // Encrypt returns { ciphertext, nonce }
+    const { cipherText, nonce } = handler.encrypt(plaintext);
 
-        // New handler for decryption with the same key
-        const decryptHandler = new AESHandler(keyUint8Array);
+    // New handler for decryption with the same key
+    const decryptHandler = new AESHandler(keyUint8Array);
 
-        // Decrypt cipherText with nonce
-        const decrypted = decryptHandler.decrypt(cipherText, nonce);
+    // Decrypt cipherText with nonce
+    const decrypted = decryptHandler.decrypt(cipherText, nonce);
 
-        const decryptedText = TestsUtils.uint8ArrayToString(decrypted);
+    const decryptedText = TestsUtils.uint8ArrayToString(decrypted);
 
-        expect(decrypted).toEqual(plaintext);
-        expect(decryptedText).toBe(originalText);
-        expect(cipherText).not.toEqual(plaintext);
-    });
+    expect(decrypted).toEqual(plaintext);
+    expect(decryptedText).toBe(originalText);
+    expect(cipherText).not.toEqual(plaintext);
+  });
 
-    it('should encrypt and decrypt plaintext of arbitrary length (non-block size)', () => {
-        const originalText = 'Short!';
-        const plaintext = TestsUtils.stringToUint8Array(originalText);
+  it('should encrypt and decrypt plaintext of arbitrary length (non-block size)', () => {
+    const originalText = 'Short!';
+    const plaintext = TestsUtils.stringToUint8Array(originalText);
 
-        const { cipherText, nonce } = handler.encrypt(plaintext);
+    const { cipherText, nonce } = handler.encrypt(plaintext);
 
-        const decryptHandler = new AESHandler(keyUint8Array);
-        const decrypted = decryptHandler.decrypt(cipherText, nonce);
+    const decryptHandler = new AESHandler(keyUint8Array);
+    const decrypted = decryptHandler.decrypt(cipherText, nonce);
 
-        const decryptedText = TestsUtils.uint8ArrayToString(decrypted);
+    const decryptedText = TestsUtils.uint8ArrayToString(decrypted);
 
-        expect(decrypted).toEqual(plaintext);
-        expect(decryptedText).toBe(originalText);
-    });
+    expect(decrypted).toEqual(plaintext);
+    expect(decryptedText).toBe(originalText);
+  });
 
-    it('should use different nonces for each encryption', () => {
-        const plaintext = TestsUtils.stringToUint8Array('Block1');
-        const { cipherText: ct1, nonce: nonce1 } = handler.encrypt(plaintext);
-        const { cipherText: ct2, nonce: nonce2 } = handler.encrypt(plaintext);
-        console.log(nonce1, nonce2)
-        expect(nonce1).not.toEqual(nonce2);
-        expect(ct1).not.toEqual(ct2);
-    });
+  it('should use different nonces for each encryption', () => {
+    const plaintext = TestsUtils.stringToUint8Array('Block1');
+    const { cipherText: ct1, nonce: nonce1 } = handler.encrypt(plaintext);
+    const { cipherText: ct2, nonce: nonce2 } = handler.encrypt(plaintext);
+    // TESTOING LOGS
+    // console.log('nonce1:', nonce1);
+    // console.log('nonce2:', nonce2);
+    // console.log('ct1:', ct1);
+    // console.log('ct2:', ct2);
+    expect(nonce1).not.toEqual(nonce2);
+    expect(ct1).not.toEqual(ct2);
+  });
+
+  it('should correctly encrypt and decrypt a plaintext', () => {
+    const plaintextStr = 'Hello AES CTR!';
+    const plaintext = TestsUtils.stringToUint8Array(plaintextStr);
+
+    // Encrypt the plaintext
+    const { cipherText, nonce } = handler.encrypt(plaintext);
+
+    // Decrypt with the same nonce and default initial counter
+    const decrypted = handler.decrypt(cipherText, nonce);
+
+    // Convert decrypted Uint8Array back to string
+    const decryptedStr = TestsUtils.uint8ArrayToString(decrypted);
+
+    expect(decryptedStr).toEqual(plaintextStr);
+  });
+  it('should correctly add, apply and return a passed nonce', () => {
+    const originalText = 'generated nonce test';
+    const generatedNonce = TestsUtils.generateNonce();
+    const plaintext = TestsUtils.stringToUint8Array(originalText);
+    const aesCustomNonceHandler = new AESHandler(keyUint8Array, generatedNonce);
+
+    const { cipherText, nonce } = handler.encrypt(plaintext);
+    expect(nonce).not.toEqual(generatedNonce);
+
+    const decrypted = aesCustomNonceHandler.decrypt(cipherText, nonce);
+    const decryptedText = TestsUtils.uint8ArrayToString(decrypted);
+    expect(decryptedText).toBe(originalText);
+  });
+  it('should handle unicode plaintext', () => {
+    const unicodeStr = '🚀🔥💧 中文テスト 🌟';
+    const plaintext = TestsUtils.stringToUint8Array(unicodeStr);
+    const { cipherText, nonce } = handler.encrypt(plaintext);
+    const decrypted = handler.decrypt(cipherText, nonce);
+    const decryptedStr = TestsUtils.uint8ArrayToString(decrypted);
+    expect(decryptedStr).toBe(unicodeStr);
+  });
 });
-// import {
-//     AESHandler,
-//     AESCore,
-//     AESCounterCTR
-// } from '../src/index';
-// import { TestsUtils } from '../utils';
 
-// const password = 'yourpassword123';
-// const salt = TestsUtils.getConstantSaltBytes();
-// const key = TestsUtils.deriveKeyFromPassword(password, salt);
-// const keyUint8Array: Uint8Array = new Uint8Array(key);
+describe('AESCore', () => {
+  let aesCore: AESCore;
 
-// describe('AESHandler', () => {
-//     let aesCore: AESCore;
-//     let counter: AESCounterCTR;
-//     let handler: AESHandler;
+  beforeEach(() => {
+    aesCore = new AESCore(keyUint8Array);
+  });
+  it('should throw if no key is provided', () => {
+    expect(() => new AESCore(null)).toThrow();
+  });
 
-//     beforeEach(() => {
-//         aesCore = new AESCore(keyUint8Array);
-//         counter = new AESCounterCTR(1);
-//         handler = new AESHandler(aesCore, counter);
-//     });
+  it('should expand keys correctly on initialization', () => {
+    const encKeys = aesCore.getEncryptionRoundKeys();
+    const decKeys = aesCore.getDecryptionRoundKeys();
 
-//     it('should initialize AESHandler correctly', () => {
-//         expect(handler).toBeDefined();
-//         expect(handler['_aes']).toEqual(aesCore);
-//         expect(handler['_counter']).toEqual(counter);
-//         expect(handler['_remainingCounterIndex']).toBe(16);
-//         expect(handler['_remainingCounter']).toBeNull();
-//     });
+    expect(encKeys.length).toBeGreaterThan(0);
+    expect(decKeys.length).toBeGreaterThan(0);
+    encKeys.forEach((row) => {
+      expect(
+        AESTestUtils.isFlatArrayOfNumbers(row) || AESTestUtils.is4x4Matrix(row),
+      ).toBe(true);
+    });
 
-//     it('should correctly encrypt and decrypt using AES CTR mode', () => {
-//         const originalText = 'This is a secret test!';
-//         const plaintext = TestsUtils.stringToUint8Array(originalText);
+    decKeys.forEach((row) => {
+      expect(
+        AESTestUtils.isFlatArrayOfNumbers(row) || AESTestUtils.is4x4Matrix(row),
+      ).toBe(true);
+    });
+  });
+});
 
-//         // Clone counter BEFORE encryption
-//         const counterSnapshot = new Uint8Array(counter._counter);
-//         const cipherText = handler.encrypt(plaintext);
+describe('AESCounter', () => {});
 
-//         const decryptCounter = new AESCounterCTR(counterSnapshot);
-//         const decryptHandler = new AESHandler(aesCore, decryptCounter);
-//         const decrypted = decryptHandler.encrypt(cipherText);
-//         const decryptedText = TestsUtils.uint8ArrayToString(decrypted);
+describe('AESEncryptDecrypt', () => {});
 
-//         expect(decrypted).toEqual(plaintext);
-//         expect(decryptedText).toBe(originalText);
-//         expect(cipherText).not.toEqual(plaintext);
-//     });
-
-//     it('should encrypt and decrypt plaintext of arbitrary length (non-block size)', () => {
-//         const originalText = 'Short!';
-//         const plaintext = TestsUtils.stringToUint8Array(originalText);
-
-//         const counterSnapshot = new Uint8Array(counter._counter);
-//         const cipherText = handler.encrypt(plaintext);
-
-//         const decryptCounter = new AESCounterCTR(counterSnapshot);
-//         const decryptHandler = new AESHandler(aesCore, decryptCounter);
-//         const decrypted = decryptHandler.encrypt(cipherText);
-//         const decryptedText = TestsUtils.uint8ArrayToString(decrypted);
-
-//         expect(decrypted).toEqual(plaintext);
-//         expect(decryptedText).toBe(originalText);
-//     });
-
-//     it('should increment counter correctly after each block', () => {
-//         const freshCounter = new AESCounterCTR(0);
-//         const handlerWithFreshCounter = new AESHandler(aesCore, freshCounter);
-//         const counterValue = freshCounter._counter;
-
-//         const plaintext = new Uint8Array(32); // two blocks
-
-//         handlerWithFreshCounter.encrypt(plaintext.subarray(0, 16));
-//         const firstValue = freshCounter.getValue(counterValue);
-//         expect(firstValue).toBe(1);
-
-//         handlerWithFreshCounter.encrypt(plaintext.subarray(16, 32));
-//         const secondValue = freshCounter.getValue(counterValue);
-//         expect(secondValue).toBe(2);
-//     });
-// });
+describe('AESUtils', () => {});

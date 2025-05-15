@@ -18,7 +18,7 @@ import {
   DECRYPTION_KEY_EXPANSION_TABLE_4,
 } from './constants';
 import type { TKeySizeRounds } from './types';
-
+/** @internal */
 export class AESSharedValues {
   static keySizeRounds: TKeySizeRounds = KEY_SIZE_ROUNDS;
   static roundConstants = AES_ROUND_CONSTANTS;
