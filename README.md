@@ -3,7 +3,7 @@
 This repository serves as a comprehensive collection of encryption methods implemented in TypeScript. It provides tested, documented, and reusable implementations of various cryptographic algorithms, designed to help developers integrate encryption into their applications easily and securely. While this library is continuously maintained and improved, it currently includes the following encryption methods:
 
 - ### Blowfish
-- ### TwoFish \*(in progress)
+- ### TwoFish
 - ### AES Data Encryption (CTR Mode)
 
 <br />
