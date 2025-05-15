@@ -29,7 +29,7 @@ export class AESEncryptDecrypt {
    */
   private processBlockAES(
     input: Uint8Array,
-    roundKeys: number[][] = [],
+    roundKeys: number[][],
     sBox: number[],
     isEncryption: boolean,
   ): Uint8Array {
@@ -74,24 +74,13 @@ export class AESEncryptDecrypt {
   }
   private encryptBlockAES(
     plaintext: Uint8Array,
-    roundKeys: number[][] = [],
+    roundKeys: number[][],
   ): Uint8Array {
     return this.processBlockAES(
       plaintext,
       roundKeys,
       AESSharedValues.aesSBox,
       true, // Encrypting
-    );
-  }
-  public decryptBlockAES(
-    cipherText: Uint8Array,
-    roundKeys: number[][] = [],
-  ): Uint8Array {
-    return this.processBlockAES(
-      cipherText,
-      roundKeys,
-      AESSharedValues.aesInverseSBox,
-      false, // Decrypting
     );
   }
   public AESEncryptCTR({ plaintext, state }: TAESEncryptCTR) {

@@ -4,6 +4,7 @@ This repository serves as a comprehensive collection of encryption methods imple
 
 - ### Blowfish
 - ### TwoFish \*(in progress)
+- ### AES Data Encryption (CTR Mode)
 
 <br />
 
@@ -87,6 +88,128 @@ const encoded = bf.encryptData('input text even with emoji 🎅');
 const decoded = bf.decryptData(encoded);
 ```
 
+<br />
+
+<br />
+
+<br />
+
 # II. TwoFish Data Encryption
 
-## This section is currently in Beta
+TwoFish is the successor and spiritual successor to the Blowfish encryption algorithm, designed to improve upon Blowfish’s strengths while addressing its limitations. Developed by renowned cryptographers as a finalist for the Advanced Encryption Standard (AES) competition, TwoFish offers enhanced security features, greater flexibility with key sizes up to 256 bits, and improved performance.
+
+Building on the foundation laid by Blowfish, TwoFish incorporates advanced techniques such as key-dependent S-boxes, a Feistel network, and a more complex key schedule. This makes it more resistant to modern cryptanalytic attacks while maintaining the efficiency and versatility that made Blowfish popular.
+
+In this implementation, we deliver a robust TypeScript-based TwoFish encryption module designed for secure and efficient data encryption in modern applications.
+
+<br />
+
+<br />
+
+<br />
+
+# III. AES Data Encryption (CTR Mode)
+
+The AES (Advanced Encryption Standard) algorithm is a symmetric key encryption method used widely across modern cryptographic systems. In this library, we implement AES using **CTR (Counter) mode**, which converts the block cipher into a stream cipher—ideal for encrypting data of arbitrary length.
+
+CTR mode works by combining a unique **nonce** (number used once) and a counter value with each block of plaintext using AES encryption. The resulting keystream is XORed with the plaintext to produce the ciphertext. For decryption, the same process is reversed using the original nonce and counter value.
+
+<br />
+
+## Key Features
+
+- AES-CTR mode for high performance and stream support.
+- Stateless and symmetric encryption/decryption.
+- Optional custom nonces or automatic nonce generation.
+- Supports `Uint8Array` input/output for flexible binary handling.
+- Supports `unicoded` encryption and emojis
+
+<br />
+
+## Table of Contents
+
+- [Usage](#usage-1)
+  - [Example](#example-1)
+  - [Nonce Handling](#nonce-handling)
+- [Benefits of CTR with AES][#]
+- [Security Considerations](#security-considerations-1)
+
+<br />
+
+## Usage
+
+All encryption inputs and outputs are handled as `Uint8Array`, allowing compatibility with binary protocols, file buffers, or custom string encodings.
+
+> 🔐 AES CTR requires the same nonce and counter value for decryption. You must **store or transmit** the nonce securely along with the encrypted output.
+
+---
+
+### Example
+
+```ts
+import { AESHandler } from '@your-lib-path/aes';
+
+const key = crypto.getRandomValues(new Uint8Array(16)); // AES-128
+const aes = new AESHandler(key);
+
+const data = new TextEncoder().encode('Secret Message ✉️');
+
+const { cipherText, nonce } = aes.encrypt(data);
+
+const decrypted = aes.decrypt(cipherText, nonce);
+console.log(new TextDecoder().decode(decrypted)); // "Secret Message ✉️"
+```
+
+## Benefits of CTR with AES
+
+CTR (Counter) mode brings several advantages to AES encryption, especially for modern applications that require speed, scalability, and flexibility. Here's why it's a strong choice for this library:
+
+---
+
+### 🚀 Parallel Processing
+
+Unlike modes like CBC, where each block depends on the previous one, CTR mode allows blocks to be encrypted independently. This enables **parallel processing**, significantly improving performance on multi-core systems or when handling large data sets.
+
+---
+
+### Efficient for Streaming Data
+
+CTR transforms AES into a stream cipher, allowing encryption of data with **arbitrary length** and without block alignment constraints. This is perfect for applications like:
+
+- Real-time messaging
+- Live data feeds
+- Encrypted file uploads or downloads
+
+---
+
+### No Padding Required (thank the heaves!)
+
+CTR mode eliminates the need for padding schemes like PKCS7. This:
+
+- Simplifies the implementation
+- Avoids padding-related bugs or attacks
+- Maintains a consistent ciphertext length relative to the input
+
+---
+
+### 🧷 Lower IV Misuse Risk
+
+Instead of a traditional IV (Initialization Vector), CTR mode uses a **nonce + counter** pair. As long as the nonce is **unique per encryption**, reuse vulnerabilities (which plague modes like CBC) are avoided.
+
+> 🔐 Nonce uniqueness is critical. Never reuse the same nonce-key pair.
+
+---
+
+### ⚙️ High Throughput & Scalability
+
+CTR's structure makes it ideal for **high-throughput** applications:
+
+- Scales easily with parallelism
+- Suitable for large file or batch encryption
+- Performs well in real-world web and server applications
+
+---
+
+# Security Considerations
+
+While CTR mode provides robust security, its strength heavily depends on never reusing the nonce with the same key. In our application, we ensure the nonce is randomly generated and unique per encryption, mitigating potential vulnerabilities that can arise from nonce reuse.

@@ -25,7 +25,10 @@ import type { TByte } from './types';
 export class AESCounterCTR {
   public _counter: Uint8Array = new Uint8Array(16);
   private originalNonce;
-  constructor(initialValue: number | TByte[] | Uint8Array, nonce?: Uint8Array) {
+  constructor(
+    initialValue?: number | TByte[] | Uint8Array | null,
+    nonce?: Uint8Array,
+  ) {
     const resolvedNonce = nonce ?? AESUtils.generateNonce(); // Use passed nonce if cloning
 
     if (resolvedNonce.length !== 12) {

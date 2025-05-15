@@ -4,6 +4,36 @@ import { AESCounterCTR } from './aes-counter';
 import { AESEncryptDecrypt } from './aes-encrypt-decrypt';
 import { TAESBuffer } from './types';
 
+/**
+ * @example
+ * ```typescript
+ * import { AESHandler } from './aes-handler';
+ *
+ * const key = crypto.getRandomValues(new Uint8Array(16)); // 128-bit key
+ * const handler = new AESHandler(key);
+ *
+ * const data = new TextEncoder().encode("Hello, World!");
+ * const { cipherText, nonce } = handler.encrypt(data);
+ *
+ * const decrypted = handler.decrypt(cipherText, nonce);
+ * console.log(new TextDecoder().decode(decrypted)); // "Hello, World!"
+ * ```
+ *
+ * AESHandler
+ *
+ *  Handles nonce generation, counter initialization, and state management for performing
+ * secure encryption/decryption operations using AES.
+ *
+ *  @remarks
+ * - AES CTR mode is a stream cipher, and the same nonce + counter combination must never be reused.
+ * - The `encrypt` method generates a fresh 12-byte nonce automatically.
+ * - The `decrypt` method requires the exact same nonce used during encryption.
+ * - You can customize the initial counter value (default is `1`).
+ *
+ * This handler is base encoding and decoding method for kalo-skribi architecture
+ * @note
+ * Additional branch's will be added to meet critra if needed
+ */
 export class AESHandler {
   private _aes: AESCore;
   private _encryptDecrypt: AESEncryptDecrypt;

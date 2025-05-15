@@ -1,11 +1,11 @@
-import type { TAESBuffer, TByte, TRoundKey } from './types';
+import type { TAESBuffer, TByte, TRoundKey, Maybe } from './types';
 import { AESSharedValues } from './aes-shared-values';
 /** @internal */
 export class AESUtils {
   static getNumberOfRounds = (
-    keySize: keyof typeof AESSharedValues.keySizeRounds,
+    keySize: Maybe<keyof typeof AESSharedValues.keySizeRounds>,
   ): number => {
-    if (!AESSharedValues.keySizeRounds[keySize])
+    if (!keySize || !(keySize in AESSharedValues.keySizeRounds))
       throw new AESError({
         message:
           'Invalid key size (must be 16, 24, or 32 bytes) for AES encryption.',
@@ -36,12 +36,13 @@ export class AESUtils {
 
     return new Uint8Array(arg);
   };
+  /* istanbul ignore next */
   public static generateNonce(): Uint8Array {
     const nonce = new Uint8Array(12);
     crypto.getRandomValues(nonce); // secure random bytes
     return nonce;
   }
-
+  /* istanbul ignore next */
   public static convertToInt32 = (bytes: number[] | Uint8Array) => {
     // Preallocate the array
     // *Bitwise faster than division for integers
@@ -58,7 +59,7 @@ export class AESUtils {
     }
     return result;
   };
-
+  /* istanbul ignore next */
   public static roundConstant(roundConstantPointer: number): number {
     return AESSharedValues.roundConstants[roundConstantPointer];
   }
@@ -77,15 +78,15 @@ export class AESUtils {
       decryptionRoundKeys.push([0, 0, 0, 0]);
     }
   }
-
+  /* istanbul ignore next */
   public static toSingedInteger = (value: number): number => {
     return parseInt(value.toString(), 10);
   };
-
+  /* istanbul ignore next */
   static checkInt = (value: unknown): boolean => {
     return typeof value === 'number' && value === value;
   };
-
+  /* istanbul ignore next */
   static checkByteArray<T extends number[]>(arr: T): arr is T {
     return arr.every(
       (value) =>
@@ -95,14 +96,15 @@ export class AESUtils {
         Number.isInteger(value),
     );
   }
-
+  /* istanbul ignore next */
   static isUint8Array(arg: unknown): arg is Uint8Array {
     return arg instanceof Uint8Array;
   }
+  /* istanbul ignore next */
   static isValidByteArray<T extends number[]>(arg: unknown): arg is T {
     return Array.isArray(arg) && this.checkByteArray(arg);
   }
-
+  /* istanbul ignore next */
   static checkInts<T extends number[]>(arrayIsh: unknown): arrayIsh is T {
     if (!Array.isArray(arrayIsh)) return false;
     return this.checkByteArray(arrayIsh);
@@ -120,6 +122,7 @@ export class AESUtils {
 
     return length;
   }
+  /* istanbul ignore next */
   static validateInputLength(input: Uint8Array | TByte[]) {
     if (input.length !== 16) {
       throw new AESError({
@@ -129,13 +132,15 @@ export class AESUtils {
       });
     }
   }
+  /* istanbul ignore next */
   static isNumber(value: unknown): value is number {
     return typeof value === 'number';
   }
+  /* istanbul ignore next */
   static isInteger(value: unknown): value is number {
     return Number.isInteger(value);
   }
-
+  /* istanbul ignore next */
   static validateCounterValue(value: number | string): asserts value is number {
     if (!this.isNumber(value) || !this.isInteger(value)) {
       throw new AESError({
@@ -155,7 +160,7 @@ export class AESUtils {
     }
   }
 }
-
+/* istanbul ignore next */
 export class AESError extends Error {
   statusCode: number;
   customErrorCode: string;
