@@ -3,3 +3,4 @@ export * from './handler';
 export * from './types';
 export * from './aes-encrypt-decrypt';
 export * from './aes-counter';
+export * from './aes-utils'

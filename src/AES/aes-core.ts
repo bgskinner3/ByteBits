@@ -31,10 +31,11 @@ export class AESCore {
   private KEY: Uint8Array;
   private rounds: number; // 📊  Nr in FIPS-197
   // ***** KNOWN AS    _Ke
-  private _encryptionRoundKeys: TRoundKey[] = []; //  🔒 w[] — Key schedule (expanded key words)
+  private  _encryptionRoundKeys: TRoundKey[]; //  🔒 w[] — Key schedule (expanded key words)
   // ***** KNOWN AS  _decryptionRoundKeys
-  private _decryptionRoundKeys: TRoundKey[] = []; //  🔒 w[] — Key schedule (expanded key words)
-
+  private _decryptionRoundKeys: TRoundKey[]; //  🔒 w[] — Key schedule (expanded key words)
+  private readonly roundKeyCount: number;
+  private readonly numRows: number;
   constructor(key: TAESBuffer) {
     if (!key) {
       throw new AESError({
@@ -47,6 +48,11 @@ export class AESCore {
     const keySize = AESUtils.inferKeySize(this.KEY);
     this.rounds = AESUtils.getNumberOfRounds(keySize); // Nr = Nk + 6
 
+
+    this.roundKeyCount = AESSharedValues.numberOfColumns * (this.rounds + 1); // 🔒(FIPS-197) w[] length
+    this.numRows = this.KEY.length >>> 2; // 📐 (FIPS-197) Nk — number
+    this._encryptionRoundKeys = Array.from({ length: this.numRows }, () => [0, 0, 0, 0]);
+    this._decryptionRoundKeys = Array.from({ length: this.numRows }, () => [0, 0, 0, 0]);
     AESUtils.initializeEncryptionBoxes({
       rounds: this.rounds,
       encryptionRoundKeys: this._encryptionRoundKeys,
@@ -57,12 +63,10 @@ export class AESCore {
   }
 
   private expandKey(): void {
-    const keyLength = this.KEY.length;
-    const roundKeyCount = AESSharedValues.numberOfColumns * (this.rounds + 1); // 🔒(FIPS-197) w[] length
-    const numWordsKey = keyLength >>> 2; // 📐 (FIPS-197) Nk — number
+
     const tempKey = AESUtils.convertToInt32(this.KEY); // 📐 Input key interpreted as array of Nk 32-bit words
 
-    for (let i = 0, idx = 0; i < numWordsKey; i++) {
+    for (let i = 0, idx = 0; i < this.numRows; i++) {
       idx = i >> 2;
       this._encryptionRoundKeys[idx][i % 4] = tempKey[i];
       this._decryptionRoundKeys[this.rounds - idx][i % 4] = tempKey[i];
@@ -70,19 +74,19 @@ export class AESCore {
 
     // Key expansion (fips-197 section 5.2)
     // https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf
-    for (let t = numWordsKey, rc = 1; t < roundKeyCount; t++) {
+    for (let t = this.numRows, rc = 1; t < this.roundKeyCount; t++) {
       const prev: number = tempKey[t - 1]; // @note temp ← w[t - 1] (the previous word)
       const tmp: number[] = [prev]; // corresponds to `temp` in FIPS-197
 
-      if (t % numWordsKey === 0) {
+      if (t % this.numRows === 0) {
         this.rotateWord(tmp);
         this.substituteWord(tmp);
         this.coefficientAddition(tmp, AESUtils.roundConstant(rc++));
-      } else if (numWordsKey > 6 && t % numWordsKey === 4) {
+      } else if (this.numRows > 6 && t % this.numRows === 4) {
         this.substituteWord(tmp); // For AES-256 only: If Nk > 6 and t mod Nk === 4, temp ← SubWord(temp)
       }
 
-      const from = tempKey[t - numWordsKey]; //  w[t] = w[t - Nk] ⊕ temp
+      const from = tempKey[t - this.numRows]; //  w[t] = w[t - Nk] ⊕ temp
       tempKey[t] = [
         from[0] ^ tmp[0],
         from[1] ^ tmp[1],
@@ -90,7 +94,7 @@ export class AESCore {
         from[3] ^ tmp[3],
       ];
     }
-    for (let t = 0; t < roundKeyCount; t++) {
+    for (let t = 0; t < this.roundKeyCount; t++) {
       const row = Math.floor(t / 4);
       const col = t % 4;
 
@@ -138,5 +142,15 @@ export class AESCore {
    */
   private coefficientAddition(w: number[], roundConstant: number): void {
     w[0] ^= roundConstant;
+  }
+  public getEncryptionRoundKeys(): TRoundKey[] {
+    return this._encryptionRoundKeys;
+  }
+
+  /**
+   * Get decryption round keys (for decryption)
+   */
+  public getDecryptionRoundKeys(): TRoundKey[] {
+    return this._decryptionRoundKeys;
   }
 }

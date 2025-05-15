@@ -1,4 +1,4 @@
-import { AESUtils } from './aes-utils';
+import { AESUtils, AESError } from './aes-utils';
 import type { TByte } from './types';
 
 /**
@@ -22,48 +22,162 @@ import type { TByte } from './types';
  * - `InvalidCounterValue` if the provided value or bytes are invalid.
  */
 export class AESCounterCTR {
-  public _counter: Uint8Array = new Uint8Array(16);
+    public _counter: Uint8Array = new Uint8Array(16);
+    private originalNonce
+    constructor(initialValue: number | TByte[] | Uint8Array, nonce?: Uint8Array) {
+        const resolvedNonce = nonce ?? AESUtils.generateNonce(); // Use passed nonce if cloning
 
-  constructor(initialValue: number | TByte[] | Uint8Array) {
-    // We allow 0, but anything false-ish uses the default 1
-    if (initialValue !== 0 && !initialValue) {
-      initialValue = 1;
-    }
-    if (typeof initialValue === 'number') {
-      this._counter = new Uint8Array(16);
-      this.setValue(initialValue);
-    } else {
-      this.setBytes(initialValue);
-    }
-  }
+        if (resolvedNonce.length !== 12) {
+            throw new AESError({
+                message: 'Nonce must be 12 bytes',
+                customErrorCode: 'AES_NONCE_SIZE',
+                name: 'AES CTR Error',
+            });
 
-  setValue(value: number | string) {
-    AESUtils.validateCounterValue(value);
-    for (let index = 15; index >= 0; --index) {
-      this._counter[index] = value % 256;
-      value = AESUtils.toSingedInteger(value / 256);
+        }
+
+        this.originalNonce = resolvedNonce;
+        this._counter.set(resolvedNonce, 0);
+        this._counter.fill(0, 12, 16);
+
+        if (initialValue !== 0 && !initialValue) {
+            initialValue = 1;
+        }
+
+        if (typeof initialValue === 'number') {
+            this.setValue(initialValue);
+        } else {
+            this.setBytes(initialValue);
+        }
     }
-  }
-  setBytes(input: TByte[] | Uint8Array) {
-    const bytes = AESUtils.validateAndWrapUnit8Array(input, true);
-    AESUtils.validateInputLength(bytes);
-    this._counter = bytes;
-  }
-  increment() {
-    for (let i = 15; i >= 0; i--) {
-      if (this._counter[i] !== 255) {
-        this._counter[i]++;
-        return;
-      }
-      this._counter[i] = 0;
+
+
+    setValue(value: number | string) {
+        AESUtils.validateCounterValue(value);
+        console.log(this._counter, "HERE")
+        for (let index = 15; index >= 0; --index) {
+            this._counter[index] = value % 256;
+            value = AESUtils.toSingedInteger(value / 256);
+        }
     }
-    // for (let i = 15; i >= 0; i--) {
-    //     if (this._counter[i] === 255) {
-    //         this._counter[i] = 0
-    //     } else {
-    //         this._counter[i]++
-    //         break
-    //     }
-    // }
-  }
+    setBytes(input: TByte[] | Uint8Array) {
+        const bytes = AESUtils.validateAndWrapUnit8Array(input, true);
+        AESUtils.validateInputLength(bytes);
+        this._counter = bytes;
+    }
+    increment() {
+        for (let i = 15; i >= 0; i--) {
+            if (this._counter[i] !== 255) {
+                this._counter[i]++;
+                return;
+            }
+            this._counter[i] = 0;
+        }
+
+    }
+    /**
+    * FOR TESTING PURPOSES ONLY.
+    * Returns the current numeric value of the counter, representing the number of encryptions/decryptions performed.
+    * This is derived from the last 4 bytes of the internal 16-byte counter.
+    * 
+    * @returns {number} The count of blocks processed (number of encryptions/decryptions).
+    */
+    getValue(counterValue: Uint8Array): number {
+
+        return (
+            (counterValue[12] << 24) |
+            (counterValue[13] << 16) |
+            (counterValue[14] << 8) |
+            counterValue[15]
+        ) >>> 0; // >>> 0 to get unsigned
+    }
+    public getNonce() {
+        return this.originalNonce
+    }
+    clone(): AESCounterCTR {
+        // Pass both the counter and original nonce to ensure full fidelity
+        const counterCopy = new Uint8Array(this._counter);
+        const nonceCopy = new Uint8Array(this.originalNonce);
+        return new AESCounterCTR(counterCopy, nonceCopy);
+    }
 }
+/**
+ export class AESCounterCTR {
+    public _counter: Uint8Array | null
+    private originalNonce
+    constructor(initialValue: number | TByte[] | Uint8Array, nonce?: Uint8Array) {
+        const resolvedNonce = nonce ?? AESUtils.generateNonce(); // Use passed nonce if cloning
+        if (resolvedNonce.length !== 12) {
+            throw new Error('Nonce must be 12 bytes');
+        }
+
+        this.originalNonce = resolvedNonce;
+        this._counter = new Uint8Array(16)
+        this._counter.set(resolvedNonce, 0);
+        this._counter.fill(0, 12, 16);
+
+        if (initialValue !== 0 && !initialValue) {
+            initialValue = 1;
+        }
+
+        if (typeof initialValue === 'number') {
+            this.setValue(initialValue);
+        } else {
+            this.setBytes(initialValue);
+        }
+    }
+
+
+    setValue(value: number | string) {
+        AESUtils.validateCounterValue(value);
+        if (!this._counter) throw new Error('Counter not initialized');
+        for (let index = 15; index >= 0; --index) {
+            this._counter[index] = value % 256;
+            value = AESUtils.toSingedInteger(value / 256);
+        }
+    }
+    setBytes(input: TByte[] | Uint8Array) {
+        const bytes = AESUtils.validateAndWrapUnit8Array(input, true);
+        AESUtils.validateInputLength(bytes);
+        this._counter = bytes;
+    }
+    increment() {
+        if (!this._counter) throw new Error('Counter not initialized');
+        for (let i = 15; i >= 0; i--) {
+            if (this._counter[i] !== 255) {
+                this._counter[i]++;
+                return;
+            }
+            this._counter[i] = 0;
+        }
+
+    }
+    /**
+//     * FOR TESTING PURPOSES ONLY.
+//     * Returns the current numeric value of the counter, representing the number of encryptions/decryptions performed.
+//     * This is derived from the last 4 bytes of the internal 16-byte counter.
+//     *
+//     * @returns {number} The count of blocks processed (number of encryptions/decryptions).
+//     */
+//     getValue(counterValue: Uint8Array): number {
+
+//         return (
+//             (counterValue[12] << 24) |
+//             (counterValue[13] << 16) |
+//             (counterValue[14] << 8) |
+//             counterValue[15]
+//         ) >>> 0; // >>> 0 to get unsigned
+//     }
+//     public getNonce() {
+//         return this.originalNonce
+//     }
+//     clone(): AESCounterCTR {
+//             if (!this._counter) throw new Error('Counter not initialized');
+//         // Pass both the counter and original nonce to ensure full fidelity
+//         const counterCopy = new Uint8Array(this._counter);
+//         const nonceCopy = new Uint8Array(this.originalNonce);
+//         return new AESCounterCTR(counterCopy, nonceCopy);
+//     }
+// }
+
+//  */
