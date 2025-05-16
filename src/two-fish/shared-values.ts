@@ -1,3 +1,10 @@
+
+
+
+
+
+
+
 export class TwoFishSharedValues {
   static P0: Uint8Array = this.parseUnit8Boxes(process.env.P0 ?? '');
   static P1: Uint8Array = this.parseUnit8Boxes(process.env.P1 ?? '');

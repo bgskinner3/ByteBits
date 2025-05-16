@@ -279,6 +279,7 @@ export class TwoFish {
       (key[offset++] << 8) |
       (key[offset++] << 16) |
       (key[offset++] << 24);
+      
     sBox[k64Cnt - 1] = this.rsMDSEncode(k0, k1);
 
     let k2 =
