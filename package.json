@@ -13,7 +13,8 @@
     "lint:types": "tsc --noEmit",
     "lint:fix": "eslint --fix \"**/*.ts*\"",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md,mdx,json}\"",
-    "format:check": "prettier -c \"**/*.{js,jsx,ts,tsx,md,mdx,json}\""
+    "format:check": "prettier -c \"**/*.{js,jsx,ts,tsx,md,mdx,json}\"",
+    "test:twofish": "jest -- tests/two-fish-2.0.test.ts"
   },
   "keywords": [],
   "author": "",

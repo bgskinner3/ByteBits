@@ -1,159 +1,240 @@
-import { TWO_FISH_CONSTANTS } from './constants';
-import { TwoFish } from './two-fish';
+import { TwoFishCore } from './two-fish-core';
+import { TwoFishBlockUtils, TwoFishUtils, TwoFishError } from './utils';
+import { TwoFishSharedValues } from './two-fish-shared-values';
+import { TEncryptDecryptBlockProps } from './types';
 
 export class TwoFishEncryptDecrypt {
-  private MAXPASSWLEN = TwoFish.MAXKEYLENGTH >> 1;
-  private twoFish: TwoFish | null = null;
-  private HEXTAB = TWO_FISH_CONSTANTS.HEXTAB;
-  constructor(password: string) {
-    this.initSessionKey(password);
-  }
-
-  private initSessionKey(passphrase: string) {
-    let key = new Int8Array(passphrase.length);
-
-    // Convert each character to 8-bit signed integer
-    for (let i = 0; i < passphrase.length; i++) {
-      key[i] = this.charToSigned8BitInt(passphrase[i]);
+    private readonly core: TwoFishCore;
+    private ROUND_SUB_KEYS = TwoFishSharedValues.subKeyRounds;
+    private ROUNDS = TwoFishSharedValues.totalRounds;
+    public BLOCK_SIZE = 16;
+    constructor(core: TwoFishCore) {
+        this.core = core;
+    }
+    protected outputBlock({
+        outputBuffer,
+        outputOffset,
+        word0,
+        word1,
+        word2,
+        word3,
+    }: {
+        outputBuffer: Uint8Array;
+        outputOffset: number;
+        word0: number;
+        word1: number;
+        word2: number;
+        word3: number;
+    }) {
+        TwoFishUtils.writeUint32LE(outputBuffer, outputOffset, word0);
+        TwoFishUtils.writeUint32LE(outputBuffer, outputOffset + 4, word1);
+        TwoFishUtils.writeUint32LE(outputBuffer, outputOffset + 8, word2);
+        TwoFishUtils.writeUint32LE(outputBuffer, outputOffset + 12, word3);
     }
 
-    // Truncate if the key is too long
-    const keyLength = key.length;
-    if (keyLength > this.MAXPASSWLEN) {
-      key = key.subarray(0, 32); // Truncate to 32 bytes if too long
-    } else {
-      // Calculate the padding needed to make the key length a multiple of 8
-      const mod = keyLength % 8;
-      /**
-             Add padding to make the length a multiple of 8
-             */
-      if (keyLength === 0 || mod !== 0) {
-        const paddingLength = 8 - mod;
-        const paddedKey = new Int8Array(keyLength + paddingLength);
-        paddedKey.set(key);
-        key = paddedKey;
-      }
-    }
-
-    // Convert signed key to unsigned if needed
-    const finalKey = new Uint8Array(key.buffer);
-
-    // Initialize the TwoFish cipher with the key
-    this.twoFish = new TwoFish(finalKey);
-
-    // Clear the key buffer after it is used (zero out the contents)
-    finalKey.fill(0);
-  }
-  private charToSigned8BitInt(char: string): number {
-    const charCode = char.charCodeAt(0);
-    // Apply bitwise AND with 0xff to keep only the least sigindexficant 8 bits
-    let result = charCode & 0xff;
-    // If the result is greater than 127, subtract 256 to make it a signed value
-    if (result > 127) {
-      result -= 256;
-    }
-    return result;
-  }
-  private setCharAt(ins: string, position: number, chr: string): string {
-    const result = [];
-    if (position > 0) {
-      result.push(ins.substring(0, position));
-    }
-    result.push(chr);
-
-    if (position < ins.length) {
-      result.push(ins.substring(position + 1, ins.length));
-    }
-
-    return result.join('');
-  }
-  public encryptTwoFishString(sPlainText: string): string {
-    // allocate the buffer (align to the next 8 byte border)
-    const originLength: number = sPlainText.length;
-    let length: number = sPlainText.length;
-
-    let buf: Uint8Array = new Uint8Array();
-
-    // one character equals two bytes
-    if ((length & 3) !== 0) {
-      length = (length & ~3) + 4;
-    }
-    buf = new Uint8Array(length << 1);
-
-    // copy all bytes of the string into the buffer (use network byte order)
-    let position = 0;
-    for (let index = 0; index < length; index++) {
-      let char;
-      // pad with blanks if the index is less htan the original length
-      index < originLength ? (char = sPlainText[index]) : (char = ' ');
-      if (index < originLength) {
-        char = sPlainText[index];
-      } else {
-        char = ' ';
-      }
-      // we have to convert the character to a 8-bit signed intger
-      const siginedInt8Bit = this.charToSigned8BitInt(char);
-      buf[position++] = (siginedInt8Bit >> 8) & 0x0ff;
-      buf[position++] = siginedInt8Bit & 0x0ff;
-    }
-
-    this.twoFish?.encrypt(buf);
-
-    // convert the buffer content back to a binhex string
-    length <<= 1;
-
-    let sbuf: string = ' '.repeat(length << 1);
-    position = 0;
-    for (let index = 0; index < length; index++) {
-      sbuf = this.setCharAt(
-        sbuf,
-        position++,
-        this.HEXTAB[(buf[index] >> 4) & 0x0f],
-      );
-      sbuf = this.setCharAt(sbuf, position++, this.HEXTAB[buf[index] & 0x0f]);
-    }
-
-    return sbuf.toString();
-  }
-
-  public decryptTwoFishString(sCipherText: string): string {
-    let nLength = sCipherText.length & ~15;
-
-    nLength >>= 1;
-
-    const buf: Uint8Array = new Uint8Array(nLength);
-    let position = 0;
-    for (let index = 0; index < nLength; index++) {
-      let bActByte = 0;
-      for (let nJ = 0; nJ < 2; nJ++) {
-        bActByte <<= 4;
-        const cActChar = sCipherText[position++];
-        if (cActChar >= 'A' && cActChar <= 'F') {
-          bActByte |= cActChar.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
-        } else if (cActChar >= '0' && cActChar <= '9') {
-          bActByte |= cActChar.charCodeAt(0) - '0'.charCodeAt(0);
+    protected encryptBlock({
+        plain,
+        inputOffSet,
+        cipher,
+        outputOffset,
+    }: TEncryptDecryptBlockProps) {
+        if (cipher.length < outputOffset + this.BLOCK_SIZE) {
+            throw new TwoFishError({
+                message: 'Insufficient space to write ciphertext block.',
+                customErrorCode: 'INVALID_BLOCK_SIZE',
+                name: 'TWOFISH Encryption Error',
+            });
         }
-      }
-      buf[index] = bActByte;
+ 
+        let state0 =
+            TwoFishUtils.readUint32LE(plain, inputOffSet) ^ this.core.s_Keys[0];
+        inputOffSet += 4;
+
+        let state1 =
+            TwoFishUtils.readUint32LE(plain, inputOffSet) ^ this.core.s_Keys[1];
+        inputOffSet += 4;
+
+        let state2 =
+            TwoFishUtils.readUint32LE(plain, inputOffSet) ^ this.core.s_Keys[2];
+        inputOffSet += 4;
+
+        let state3 =
+            TwoFishUtils.readUint32LE(plain, inputOffSet) ^ this.core.s_Keys[3];
+        inputOffSet += 4;
+  
+        let t0: number, t1: number;
+        let k = this.ROUND_SUB_KEYS;
+
+        for (let round = 0; round < this.ROUNDS; round += 2) {
+            t0 = this.sBoxTransform(state0);
+            t1 = this.sBoxTransform(state1);
+
+            state2 ^= t0 + t1 + this.core.s_Keys[k++];
+            state2 = TwoFishBlockUtils.rotateRight(state2, 1);
+
+            state3 = TwoFishBlockUtils.rotateLeft(state3, 1);
+            state3 ^= t0 + 2 * t1 + this.core.s_Keys[k++];
+
+            t0 = this.sBoxTransform(state2);
+            t1 = this.sBoxTransform(state3);
+
+            state0 ^= t0 + t1 + this.core.s_Keys[k++];
+            state0 = TwoFishBlockUtils.rotateRight(state0, 1);
+
+            state1 = TwoFishBlockUtils.rotateLeft(state1, 1);
+            state1 ^= t0 + 2 * t1 + this.core.s_Keys[k++];
+        }
+        const word0: number = state0 ^ this.core.s_Keys[4];
+        const word1: number = state1 ^ this.core.s_Keys[5];
+        const word2: number = state2 ^ this.core.s_Keys[6];
+        const word3: number = state3 ^ this.core.s_Keys[7];
+
+        this.outputBlock({
+            outputBuffer: cipher,
+            outputOffset,
+            word0,
+            word1,
+            word2,
+            word3,
+        });
     }
+    protected decryptBlock(
+        // cipher: Uint8Array,
+        // io: number,
+        // plain: Uint8Array,
+        // oo: number,
+        { plain, inputOffSet, cipher, outputOffset }: TEncryptDecryptBlockProps,
+    ) {
+        if (cipher.length < inputOffSet + 16) {
+            throw new TwoFishError({
+                message: 'Incomplete ciphertext block.',
+                customErrorCode: 'INVALID_BLOCK_SIZE',
+                name: 'TWOFISH DECRYPTION Error',
+            });
+        }
+        if (plain.length < outputOffset + 16) {
+            throw new TwoFishError({
+                message: 'Insufficient space to write plaintext block.',
+                customErrorCode: 'INVALID_BLOCK_SIZE',
+                name: 'TWOFISH DECRYPTION Error',
+            });
+        }
+  
+        let state0 =
+            TwoFishUtils.readUint32LE(cipher, inputOffSet) ^ this.core.s_Keys[4];
+        inputOffSet += 4
+        let state1 =
+            TwoFishUtils.readUint32LE(cipher, inputOffSet) ^ this.core.s_Keys[5];
+        inputOffSet += 4
+        let state2 =
+            TwoFishUtils.readUint32LE(cipher, inputOffSet) ^ this.core.s_Keys[6];
+        inputOffSet += 4
+        let state3 =
+            TwoFishUtils.readUint32LE(cipher, inputOffSet) ^ this.core.s_Keys[7];
+        inputOffSet += 4
+  
+        let t0: number, t1: number;
+        let k = this.ROUND_SUB_KEYS + this.ROUNDS * 2 - 1;
 
-    this.twoFish?.decrypt(buf);
-    nLength >>= 1;
+        for (let round = this.ROUNDS - 1; round >= 0; round -= 2) {
+            // First round (r)
+            t0 = this.sBoxTransform(state2);
+            t1 = this.sBoxTransform(state3);
+        
+            state1 = TwoFishBlockUtils.rotateRight(
+                state1 ^ (t0 + 2 * t1 + this.core.s_Keys[k--]),
+                1
+            );
+        
+            state0 = TwoFishBlockUtils.rotateLeft(state0, 1);
+            state0 ^= t0 + t1 + this.core.s_Keys[k--];
+        
+            // Second round (r - 1)
+            t0 = this.sBoxTransform(state0);
+            t1 = this.sBoxTransform(state1);
+        
+            state3 = TwoFishBlockUtils.rotateRight(
+                state3 ^ (t0 + 2 * t1 + this.core.s_Keys[k--]),
+                1
+            );
+        
+            state2 = TwoFishBlockUtils.rotateLeft(state2, 1);
+            state2 ^= t0 + t1 + this.core.s_Keys[k--];
+        }
+        const word0: number = state0 ^ this.core.s_Keys[0];
+        const word1: number = state1 ^ this.core.s_Keys[1];
+        const word2: number = state2 ^ this.core.s_Keys[2];
+        const word3: number = state3 ^ this.core.s_Keys[3];
+        this.outputBlock({
+            outputBuffer: plain,
+            outputOffset,
+            word0,
+            word1,
+            word2,
+            word3,
+        });
 
-    let sbuf: string = ' '.repeat(nLength);
-
-    position = 0;
-
-    // GETTING the 8-bit ASCII character
-    for (let index = 0; index < nLength; index++) {
-      const left = ((buf[position] << 8) & 0xff00) >>> 0;
-      const right = (buf[position + 1] & 0xff) >>> 0;
-
-      sbuf = this.setCharAt(sbuf, index, String.fromCharCode(left | right));
-
-      position += 2;
     }
+    private sBoxTransform = (x: number) => {
+        const mask = 0x1fe;
+        const base = 0x200;
+        return (
+            this.core.s_Box[(x << 1) & mask] ^
+            this.core.s_Box[((x >>> 7) & mask) + 1] ^
+            this.core.s_Box[base + ((x >>> 15) & mask)] ^
+            this.core.s_Box[base + ((x >>> 23) & mask) + 1]
+        );
+    };
+    public encrypt(buffer: Uint8Array): Uint8Array {
+        const blockSize = this.BLOCK_SIZE; // 16 bytes
 
-    return '';
-  }
+        // Step 1: Pad input using your utility
+        const paddedBuffer = TwoFishBlockUtils.pkcs7Pad(buffer);
+
+        // Step 2: Allocate output buffer same size as padded input
+        const cipher = new Uint8Array(paddedBuffer.length);
+
+        // Step 3: Calculate number of 16-byte blocks
+        const blockCount = paddedBuffer.length / blockSize;
+
+        let outputOffset = 0;
+        for (let i = 0; i < blockCount; i++) {
+            const inputOffset = i * blockSize;
+
+            // Step 4: Encrypt block in-place into cipher buffer
+            this.encryptBlock({
+                plain: paddedBuffer,
+                inputOffSet: inputOffset,
+                cipher,
+                outputOffset,
+            });
+
+            outputOffset += blockSize;
+        }
+     
+        // Step 5: Return encrypted buffer
+        return cipher;
+    }
+    public decrypt(buffer: Uint8Array): Uint8Array {
+        const blockSize = this.BLOCK_SIZE; // 16 bytes
+
+        if (buffer.length % blockSize !== 0) {
+            throw new TwoFishError({
+                message: 'Invalid ciphertext length, must be multiple of block size.',
+                customErrorCode: 'INVALID_CIPHER_LENGTH',
+                name: 'TWOFISH Decryption Error',
+            });
+        }
+        const plain = new Uint8Array(buffer.length);
+        const blockCount = buffer.length / blockSize;
+        for (let i = 0; i < blockCount; i++) {
+            const inputOffSet = i * blockSize;
+            const outputOffset = i * blockSize;
+
+            this.decryptBlock({ plain, inputOffSet, cipher: buffer, outputOffset });
+        }
+
+        return TwoFishBlockUtils.pkcs7UnPad(plain);
+
+    }
 }
