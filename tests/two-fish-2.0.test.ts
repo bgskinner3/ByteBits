@@ -4,7 +4,6 @@ import {
   TwoFishSharedValues,
   TwoFishEncryptDecrypt,
   TwoFishUtils,
-  TwoFishBlockUtils,
   TwoFishError,
 } from '../src/index';
 const BLOCK_SIZE = 16;
@@ -106,37 +105,37 @@ describe('TwoFish Utils Tests', () => {
 describe('pkcs7 Padding Tests', () => {
   test('correctly unpads valid padding', () => {
     const padded = new Uint8Array([1, 2, 3, 3, 3, 3]);
-    const unpadded = TwoFishBlockUtils.pkcs7UnPad(padded);
+    const unpadded = TwoFishUtils.pkcs7UnPad(padded);
     expect(Array.from(unpadded)).toEqual([1, 2, 3]);
   });
 
   test('throws TwoFishError for padding length less than 1', () => {
     const badPadding = new Uint8Array([1, 2, 3, 0]);
-    expect(() => TwoFishBlockUtils.pkcs7UnPad(badPadding)).toThrow(
+    expect(() => TwoFishUtils.pkcs7UnPad(badPadding)).toThrow(
       TwoFishError,
     );
   });
 
   test('throws TwoFishError for padding length greater than 16', () => {
     const badPadding = new Uint8Array([1, 2, 3, 17]);
-    expect(() => TwoFishBlockUtils.pkcs7UnPad(badPadding)).toThrow(
+    expect(() => TwoFishUtils.pkcs7UnPad(badPadding)).toThrow(
       TwoFishError,
     );
   });
 
   test('throws TwoFishError if padding bytes are incorrect', () => {
     const badPaddingBytes = new Uint8Array([1, 2, 3, 4, 5, 3, 3, 2]);
-    expect(() => TwoFishBlockUtils.pkcs7UnPad(badPaddingBytes)).toThrow(
+    expect(() => TwoFishUtils.pkcs7UnPad(badPaddingBytes)).toThrow(
       TwoFishError,
     );
-    expect(() => TwoFishBlockUtils.pkcs7UnPad(badPaddingBytes)).toThrow(
+    expect(() => TwoFishUtils.pkcs7UnPad(badPaddingBytes)).toThrow(
       'Invalid PKCS#7 padding',
     );
   });
 
   test('pad adds correct padding', () => {
     const input = new Uint8Array([1, 2, 3]);
-    const padded = TwoFishBlockUtils.pkcs7Pad(input);
+    const padded = TwoFishUtils.pkcs7Pad(input);
 
     expect(padded.length % BLOCK_SIZE).toBe(0);
     expect(padded.slice(0, input.length)).toEqual(input);
@@ -153,7 +152,7 @@ describe('pkcs7 Padding Tests', () => {
     const data = new Uint8Array([
       1, 2, 3, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,
     ]);
-    const unpadded = TwoFishBlockUtils.pkcs7UnPad(data);
+    const unpadded = TwoFishUtils.pkcs7UnPad(data);
 
     expect(unpadded).toEqual(new Uint8Array([1, 2, 3]));
   });

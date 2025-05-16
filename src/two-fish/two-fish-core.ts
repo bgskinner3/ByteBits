@@ -69,15 +69,15 @@ export class TwoFishCore {
       );
     }
     /**
-            TODO
-            Safe 32-bit masking for addition,
-           
-           More detailed comments,
-           
-           Initialization for SUB_KEY_WORD and constants,
-           
-           Validation checks for key length or array lengths.
-            */
+    TODO
+    Safe 32-bit masking for addition,
+    
+   More detailed comments,
+    
+   Initialization for SUB_KEY_WORD and constants,
+    
+   Validation checks for key length or array lengths.
+    */
     this.generateSubKeys({ keyWords: kWords, numKeyBlocks64, tempSKeys });
 
     /**
