@@ -108,22 +108,34 @@ export class TwoFishUtils {
    * @returns new Uint8Array truncated and padded
    */
   static truncateAndPadKey(key: Uint8Array): Uint8Array {
-    // Truncate if too long
-    const truncatedKey =
-      key.length > TwoFishSharedValues.maxPasswordLength
-        ? key.slice(0, TwoFishSharedValues.maxPasswordLength)
-        : key;
+    const maxLength = TwoFishSharedValues.maxPasswordLength; // 32 bytes
+    const minLength = 8;
+    // Step 1: truncate if longer than maxLength
+    const truncated = key.length > maxLength ? key.slice(0, maxLength) : key;
 
-    // Pad to multiple of 8 bytes
-    const mod = truncatedKey.length & 7;
-    if (truncatedKey.length === 0 || mod !== 0) {
-      const paddedLength = truncatedKey.length + (8 - mod);
+    // Step 2: compute padding length to nearest multiple of 8, minimum 8 bytes
+    const length = truncated.length;
+    const mod = length % 8;
+
+    // Determine final padded length
+    let paddedLength;
+    if (length === 0) {
+      paddedLength = minLength; // pad empty key to 8 bytes
+    } else if (mod === 0) {
+      paddedLength = length; // already multiple of 8
+    } else {
+      paddedLength = length + (8 - mod); // pad up to next multiple of 8
+    }
+
+    // Step 3: If padding needed, pad with zeros
+    if (paddedLength !== length) {
       const paddedKey = new Uint8Array(paddedLength);
-      paddedKey.set(truncatedKey);
+      paddedKey.set(truncated);
       return paddedKey;
     }
 
-    return truncatedKey;
+    // Step 4: No padding needed, return truncated
+    return truncated;
   }
   /**
    * Performs a single step of the Reed-Solomon MDS matrix transformation

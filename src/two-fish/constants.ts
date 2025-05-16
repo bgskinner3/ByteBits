@@ -54,31 +54,31 @@ const SESSION_MEMORY = new ArrayBuffer(4256);
  * Total number of 32-bit subkeys generated during the Twofish key schedule.
  * These are used throughout the cipher’s rounds for mixing and transformation.
  */
-const SUB_KEY_COUNT = 40;
+const SUB_KEY_COUNT = 40 as const;
 
 /**
  * The number of iterations (rounds) used during subkey generation.
  * Twofish derives 2 subkeys per round for 8 rounds to produce 40 total subkeys.
  */
-const SUB_KEY_ROUNDS = 8;
+const SUB_KEY_ROUNDS = 8 as const;
 
 /**
  * Number of bits each subkey word is rotated left during key schedule.
  * This improves diffusion in the subkey generation process.
  */
-const SUB_KEY_ROTATE_LEFT = 9;
+const SUB_KEY_ROTATE_LEFT = 9 as const;
 
 /**
  * Constant step value used when computing subkeys from the original key material.
  * Each successive subkey is incremented by this value to ensure uniqueness and entropy.
  */
-const SUB_KEY_STEP = 0x01010101;
+const SUB_KEY_STEP = 0x01010101 as const;
 
 /**
  * Total number of cipher rounds in the Twofish block cipher.
  * Each round introduces mixing, substitution, and key-dependent transformations.
  */
-const ROUNDS = 16;
+const ROUNDS = 16 as const;
 /**
  * Reed-Solomon Galois Field feedback polynomial used for finite field arithmetic
  * in the Twofish key schedule (Reed-Solomon matrix multiplication).

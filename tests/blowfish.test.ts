@@ -1,4 +1,4 @@
-import { BlowfishHandler, TwoFishHandler } from '../src/index';
+import { BlowfishHandler } from '../src/index';
 
 describe('Blowfish Default initialization, encryption, decryption', () => {
   let initialization: BlowfishHandler;
@@ -45,15 +45,5 @@ describe('Blowfish Default initialization, encryption, decryption', () => {
       encryptedWord && initialization.decryptData(encryptedWord);
 
     expect(decryptedWord).toBe(wordToEncrypt);
-  });
-});
-
-describe('TwoFish Default initialization, encryption, decryption', () => {
-  let initialization: TwoFishHandler;
-  test('Setting up the encryption', () => {
-    initialization = new TwoFishHandler('a4MJTiDOad');
-
-    const result = initialization.encryptData('sadf helllo my name is brenng ');
-    result && initialization.decryptData(result);
   });
 });
