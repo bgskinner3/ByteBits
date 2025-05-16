@@ -158,10 +158,10 @@ export class TwoFishUtils {
    */
   static readUint32LE(bytes: Uint8Array, offset: number): number {
     return (
-      (bytes[offset] |
-        (bytes[offset + 1] << 8) |
-        (bytes[offset + 2] << 16) |
-        (bytes[offset + 3] << 24)) 
+      bytes[offset] |
+      (bytes[offset + 1] << 8) |
+      (bytes[offset + 2] << 16) |
+      (bytes[offset + 3] << 24)
     );
   }
   static writeUint32LE(buffer: Uint8Array, offset: number, value: number) {
