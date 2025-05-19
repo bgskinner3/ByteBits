@@ -42,6 +42,24 @@ export class AESUtils {
     crypto.getRandomValues(nonce); // secure random bytes
     return nonce;
   }
+  public static generatePartialNonce(): Uint8Array {
+    const nonce = new Uint8Array(6);
+    crypto.getRandomValues(nonce); // secure random bytes
+    return nonce;
+  }
+  public static combineNonces(
+    fixedPartial: Uint8Array,
+    randomPartial: Uint8Array,
+  ): Uint8Array {
+    if (fixedPartial.length + randomPartial.length !== 12) {
+      throw new Error('Combined nonce length must be 12 bytes');
+    }
+    const fullNonce = new Uint8Array(12);
+    fullNonce.set(fixedPartial, 0);
+    fullNonce.set(randomPartial, fixedPartial.length);
+    return fullNonce;
+  }
+
   /* istanbul ignore next */
   public static convertToInt32 = (bytes: number[] | Uint8Array) => {
     // Preallocate the array

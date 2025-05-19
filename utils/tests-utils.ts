@@ -16,7 +16,7 @@ export class TestsUtils {
     // Truncate or pad to the desired length
     return key.slice(0, keyLength);
   }
-  static getRandomSaltBytes = () => randomBytes(16);
+  static getRandomSaltBytes = () => randomBytes(12);
   static getConstantSaltBytes = () => Buffer.from('randomsalt123', 'utf8');
   static deriveUint8ArrayKey = (password: string): Uint8Array => {
     const salt = TestsUtils.getConstantSaltBytes();
