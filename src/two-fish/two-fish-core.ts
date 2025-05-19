@@ -70,11 +70,8 @@ export class TwoFishCore {
     }
     /**
     TODO
+    - comments
     Safe 32-bit masking for addition,
-    
-   More detailed comments,
-    
-   Initialization for SUB_KEY_WORD and constants,
     
    Validation checks for key length or array lengths.
     */
@@ -150,8 +147,6 @@ export class TwoFishCore {
         subByte3,
         subKeyWord: this.SUB_KEY_WORD,
       });
-      // is  this.SUB_KEY_WORD mutated ??
-      // test if subkey is mutated
 
       // XOR the left key
       combinedLeft =
