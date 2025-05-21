@@ -1,6 +1,10 @@
 export * from './handler';
 
 /**
+ * CUSTOMIZED AES HANDLER FOR KALO ENCRYPTION
+ */
+export * from './kalo-aes-handler';
+/**
  * AES ENCRYPTION WITH CTR MODE: REVIEW
  *
  * u
