@@ -1,4 +1,4 @@
-import { BASE_LIB, PADDED_LIB, FOUR_BIT_KEYS } from './constants';
+import { BASE_LIB, PADDED_LIB, FOUR_BIT_KEYS } from './constants-kalo';
 import type {
   TVariantObject,
   TLookUpObjectKeys,

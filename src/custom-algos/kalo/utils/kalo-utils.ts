@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 import type { TFourBitKey, TAllChars, TLookUpObjectKeys } from '../types';
 import { kaloMapper } from '../kalo-mapper';
-import { FOUR_BIT_KEYS } from '../constants';
+import { FOUR_BIT_KEYS } from '../constants-kalo';
 import { KaloError } from './error';
 export class KaloEncodingUtils {
   static hexToBytes(hex: string): Uint8Array {
