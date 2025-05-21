@@ -15,7 +15,8 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md,mdx,json}\"",
     "format:check": "prettier -c \"**/*.{js,jsx,ts,tsx,md,mdx,json}\"",
     "test:twofish": "jest -- tests/two-fish.test.ts",
-    "test:aes": "jest -- tests/aes-ctr.test.ts"
+    "test:aes": "jest -- tests/aes-ctr.test.ts",
+    "test:kalo": "jest --coverage --collectCoverageFrom=\"src/custom-algos/kalo/*\" tests/kalo-tests/*"
   },
   "keywords": [],
   "author": "",

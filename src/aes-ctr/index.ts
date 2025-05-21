@@ -6,9 +6,6 @@ export * from './handler';
 export * from './kalo-aes-handler';
 /**
  * AES ENCRYPTION WITH CTR MODE: REVIEW
- *
- * u
- *
  */
 
 // EXPORTING FOR TESTING REMOVE IN PROD

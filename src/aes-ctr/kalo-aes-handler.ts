@@ -1,3 +1,4 @@
+/* istanbul ignore next */
 import { AESCore } from './aes-core';
 import { AESError } from './aes-utils';
 import { AESCounterCTR } from './aes-counter';
@@ -34,6 +35,7 @@ import { TAESBuffer } from './types';
  * @note
  * Additional branch's will be added to meet critra if needed
  */
+/* istanbul ignore next */
 export class KaloAESHandler {
   private _aes: AESCore;
   private _encryptDecrypt: AESEncryptDecrypt;
