@@ -36,4 +36,14 @@ export class TestsUtils {
     crypto.getRandomValues(nonce); // secure random bytes
     return nonce;
   }
+  static generateKey(): Uint8Array {
+    const key = new Uint8Array(32);
+    crypto.getRandomValues(key);
+    return key;
+  }
+  static toHex(uint8Array: Uint8Array): string {
+    return Array.from(uint8Array)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
 }

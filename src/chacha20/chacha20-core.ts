@@ -1,9 +1,5 @@
 import { SIGMA_CONSTANTS, CHA_CHA_ROUNDS } from './constants';
-import {
-  ChaCha20Error,
-  ChaCha20EncodingUtils,
-  ChaCha20ParsingUtils,
-} from './utils';
+import { ChaCha20Error, ChaCha20Utils } from './utils';
 
 /**
  * Core of the ChaCha20 stream cipher.
@@ -25,7 +21,7 @@ export class ChaCha20Core {
   private readonly key: Uint8Array; // 32 bytes
   private readonly nonce: Uint8Array; // 12 bytes
   private counter: number;
-  private readonly constants = SIGMA_CONSTANTS;
+  private readonly constants = new Uint32Array(SIGMA_CONSTANTS);
   private readonly rounds = CHA_CHA_ROUNDS;
   private stateMatrix = new Uint32Array(16);
 
@@ -51,20 +47,14 @@ export class ChaCha20Core {
 
     // Key: 32 bytes -> 8 Uint32 words little-endian
     for (let i = 0; i < 8; i++) {
-      this.stateMatrix[4 + i] = ChaCha20ParsingUtils.readUint32LE(
-        this.key,
-        i * 4,
-      );
+      this.stateMatrix[4 + i] = ChaCha20Utils.readUint32LE(this.key, i * 4);
     }
 
     this.stateMatrix[12] = this.counter;
 
     // Nonce: 12 bytes -> 3 Uint32 words little-endian
     for (let i = 0; i < 3; i++) {
-      this.stateMatrix[13 + i] = ChaCha20ParsingUtils.readUint32LE(
-        this.nonce,
-        i * 4,
-      );
+      this.stateMatrix[13 + i] = ChaCha20Utils.readUint32LE(this.nonce, i * 4);
     }
   }
   /**
@@ -85,16 +75,16 @@ export class ChaCha20Core {
     d: number,
   ) {
     state[a] += state[b];
-    state[d] = ChaCha20EncodingUtils.rotateLeft(state[d] ^ state[a], 16);
+    state[d] = ChaCha20Utils.rotateLeft(state[d] ^ state[a], 16);
 
     state[c] += state[d];
-    state[b] = ChaCha20EncodingUtils.rotateLeft(state[b] ^ state[c], 12);
+    state[b] = ChaCha20Utils.rotateLeft(state[b] ^ state[c], 12);
 
     state[a] += state[b];
-    state[d] = ChaCha20EncodingUtils.rotateLeft(state[d] ^ state[a], 8);
+    state[d] = ChaCha20Utils.rotateLeft(state[d] ^ state[a], 8);
 
     state[c] += state[d];
-    state[b] = ChaCha20EncodingUtils.rotateLeft(state[b] ^ state[c], 7);
+    state[b] = ChaCha20Utils.rotateLeft(state[b] ^ state[c], 7);
   }
 
   private chacha20Block(state: Uint32Array): Uint32Array {
@@ -141,7 +131,7 @@ export class ChaCha20Core {
 
     // Convert Uint32 words to little-endian bytes
     for (let i = 0; i < 16; i++) {
-      ChaCha20EncodingUtils.writeUint32LE(output, i * 4, blockState[i]);
+      ChaCha20Utils.writeUint32LE(output, i * 4, blockState[i]);
     }
 
     this.counter++;
