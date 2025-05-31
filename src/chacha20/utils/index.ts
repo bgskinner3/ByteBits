@@ -1,2 +1,2 @@
-export * from './error'
-export * from './chacha20-utils'
+export * from './error';
+export * from './chacha20-utils';

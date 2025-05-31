@@ -1,6 +1,1 @@
-
-
-
-export class ChaCha20Handler {
-
-}
+export class ChaCha20Handler {}

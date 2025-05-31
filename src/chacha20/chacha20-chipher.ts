@@ -1,6 +1,1 @@
-
-
-
-export class ChaCha20Cipher {
-    
-}
+export class ChaCha20Cipher {}
